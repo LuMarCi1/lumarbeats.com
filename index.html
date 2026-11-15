@@ -300,18 +300,6 @@
   @media (max-width:760px){ #driftMark{display:none} }
   @media (prefers-reduced-motion: reduce){ .js-anim .chapter{opacity:1;transform:none;transition:none} }
 
-  /* ---------- YouTube overlay ---------- */
-  .yt-overlay{position:fixed;inset:0;z-index:120;background:rgba(2,5,3,.87);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px}
-  .yt-overlay[hidden]{display:none}
-  .yt-box{width:min(940px,100%);background:#0a120c;border:1px solid rgba(120,220,150,.38);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.65);color:#eef5ee}
-  .yt-head{display:flex;align-items:center;gap:10px;padding:12px 14px}
-  .yt-head b{font-size:1rem}
-  .yt-close{margin-left:auto;width:38px;height:38px;flex:0 0 38px;border-radius:50%;border:1px solid rgba(120,220,150,.35);background:#18251a;color:#eef5ee;cursor:pointer;font-size:1rem;line-height:1;padding:0}
-  .yt-close:hover{border-color:var(--green)}
-  .yt-frame{position:relative;aspect-ratio:16/9;background:#000}
-  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .yt-note{margin:0;padding:10px 14px 13px;color:#a7b8a8;font-size:.85rem}
-  body.yt-open{overflow:hidden}
 </style>
 </head>
 <body>
@@ -440,12 +428,12 @@
         </div>
         <div class="cfg-buyrow">
           <a class="btn btn-green" id="cfgBuy" href="https://cash.app/$27lumar/10" target="_blank" rel="noopener">Buy · $10 · Cash App</a>
-          <a class="btn btn-ghost" id="cfgMail" href="#">Claim it by email instead</a>
+          <a class="btn btn-ghost" id="cfgMail" href="mailto:lumarbeats@gmail.com?subject=Beat%20order">Claim it by email instead</a>
         </div>
         <div class="excl-box" id="cfgExcl" hidden>
           <b>Exclusive — $370</b>
           <span>Only the six LuMar Demo beats carry an Exclusive option. Buying Exclusive ends leasing for this beat — the $10 / $35 leases stay live only until an exclusive sells. Exclusive is handled by email, not instant checkout.</span>
-          <a class="btn btn-ghost" id="cfgExclMail" href="#">Email for Exclusive</a>
+          <a class="btn btn-ghost" id="cfgExclMail" href="mailto:lumarbeats@gmail.com?subject=Exclusive%20inquiry">Email for Exclusive</a>
         </div>
       </div>
     </div>
@@ -470,11 +458,11 @@
         <div>
           <h3>Beaufort, North Carolina</h3>
           <p class="place-tag">Home base · today</p>
-          <p class="desc">Where LuMar Beats runs today. The latest single was made here — a love song, plain and simple, and it plays in full.</p>
+          <p class="desc">Where LuMar Beats runs today. The latest single was made here — a love song, plain and simple. As one of the six instrumentals for sale, it plays here as a 30-second preview.</p>
         </div>
         <div class="place-act">
-          <button type="button" class="playbtn" data-pidx="0" aria-label="Play the full song You’re Nothing Like No Other">▶</button>
-          <span class="lbl">Play “You’re Nothing Like No Other” — full song</span>
+          <button type="button" class="playbtn" data-pidx="1" aria-label="Play the 30-second preview of You’re Nothing Like No Other">▶</button>
+          <span class="lbl">Play “You’re Nothing Like No Other” — 30-sec preview</span>
         </div>
       </article>
       <article class="place-row">
@@ -508,7 +496,7 @@
           <p class="desc">And from there, everywhere — the full catalog rides on the platforms you already use, wherever you already listen.</p>
         </div>
         <div class="place-act">
-          <a class="btn btn-ghost" href="https://www.youtube.com/@Lumarbeats" data-yt aria-haspopup="dialog">Watch the channel right here</a>
+          <a class="btn btn-ghost" href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">Watch the channel on YouTube</a>
         </div>
       </article>
     </div>
@@ -575,7 +563,7 @@
       <div class="era">
         <div class="era-head"><span class="era-n">ERA 01</span><h3>Beats By LilLuke</h3><span class="era-note">Where it started · the early production years</span></div>
         <div class="album-panel">
-          <iframe src="https://open.spotify.com/embed/album/6yOgq3UBkEJtKDCF0IlgQH?utm_source=generator" title="Tim Black — Uncensored, full album on Spotify" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+          <iframe src="https://open.spotify.com/embed/album/6yOgq3UBkEJtKDCF0IlgQH?utm_source=generator" title="Tim Black — Uncensored, full album on Spotify" loading="eager" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
           <div>
             <div class="tagrow" style="margin-bottom:8px"><span class="tag hot">Full album</span><span class="tag">8 songs · 26 min</span><span class="tag">Listen only</span></div>
             <h3>Tim Black — UNCENSORED</h3>
@@ -614,7 +602,7 @@
                 <button type="button" class="playbtn sm" data-pidx="8" aria-label="Play the song Never Again in full">▶</button>
                 <span style="font-size:.85rem;color:var(--muted)">Never Again</span>
               </div>
-              <a class="btn btn-ghost" style="align-self:flex-start" href="https://www.youtube.com/@Lumarbeats" data-yt aria-haspopup="dialog">Listen on YouTube</a>
+              <a class="btn btn-ghost" style="align-self:flex-start" href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">Listen on YouTube</a>
             </div>
           </article>
         </div>
@@ -660,7 +648,7 @@
               <div class="tagrow"><span class="tag">Single</span><span class="tag">Featured</span><span class="tag">Listen only</span></div>
               <h3>New Money</h3>
               <p>The flagship hard beat — the one leading the sync pitches and the next run of drops. Built to knock in the car and in the club. Its beat preview lives in the store; the released single plays on the channel.</p>
-              <a class="btn btn-ghost" style="align-self:flex-start" href="https://www.youtube.com/@Lumarbeats" data-yt aria-haspopup="dialog">Watch on YouTube</a>
+              <a class="btn btn-ghost" style="align-self:flex-start" href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">Watch on YouTube</a>
             </div>
           </article>
         </div>
@@ -668,7 +656,7 @@
     </div>
 
     <div class="socials" aria-label="LuMar Beats on social media">
-      <a href="https://www.youtube.com/@Lumarbeats" data-yt aria-haspopup="dialog">YouTube <span class="h">LuMar On The Track</span></a>
+      <a href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">YouTube <span class="h">LuMar On The Track</span></a>
       <a href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok <span class="h">@lumarbeats</span></a>
       <a href="https://www.instagram.com/alumarbeat" target="_blank" rel="noopener">Instagram <span class="h">@alumarbeat</span></a>
       <a href="https://x.com/LuMar_Ci1" target="_blank" rel="noopener">X <span class="h">@LuMar_Ci1</span></a>
@@ -740,15 +728,6 @@
     <span style="margin-left:auto">Beats direct: Cash App <b>$27lumar</b> · <a href="mailto:lumarbeats@gmail.com">lumarbeats@gmail.com</a> · lumarbeats.com</span>
   </div>
 </footer>
-
-<!-- ============ IN-PAGE YOUTUBE PLAYER ============ -->
-<div class="yt-overlay" id="ytOverlay" hidden role="dialog" aria-modal="true" aria-label="LuMar Beats on YouTube">
-  <div class="yt-box">
-    <div class="yt-head"><b id="ytTitle">LuMar Beats — LuMar On The Track</b><button type="button" class="yt-close" id="ytClose" aria-label="Close video player">✕</button></div>
-    <div class="yt-frame"><iframe id="ytFrame" title="LuMar Beats videos, playing on this page" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-    <p class="yt-note" id="ytNote">Playing right here on the page — the latest uploads from the LuMar Beats channel. Use the playlist menu in the player to browse all the videos.</p>
-  </div>
-</div>
 
 <!-- ============ SITE-WIDE PLAYER + REAL EQ VISUALIZER ============ -->
 <div class="pbar" id="playerBar" role="region" aria-label="Music player">
@@ -1137,54 +1116,12 @@ selectBeat(0, false);
 </script>
 
 <script>
-/* ================= in-page YouTube player =================
-   Channel: LuMar On The Track (@Lumarbeats), channel ID
-   UCEkAFp5qzS3TEq2Ce33ilnA (canonical URL verified on the channel
-   page) -> uploads playlist UUEkAFp5qzS3TEq2Ce33ilnA. Embeds use the
-   standard www.youtube.com host: the youtube-nocookie host renders
-   playlist embeds as a blank white box. */
-var ytOverlay = document.getElementById('ytOverlay');
-var ytFrame = document.getElementById('ytFrame');
-var ytClose = document.getElementById('ytClose');
-var ytTitle = document.getElementById('ytTitle');
-var ytNote = document.getElementById('ytNote');
-var YT_EMBED = 'https://www.youtube.com/embed/videoseries?list=UUEkAFp5qzS3TEq2Ce33ilnA&autoplay=1&rel=0&playsinline=1';
-var YT_DEFAULT_TITLE = 'LuMar Beats \u2014 LuMar On The Track';
-var YT_DEFAULT_NOTE = 'Playing right here on the page \u2014 the latest uploads from the LuMar Beats channel. Use the playlist menu in the player to browse all the videos. If a video ever refuses to play here, <a href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">open the channel on YouTube</a>.';
-function openYT(embedUrl, title){
-  if(!audio.paused) audio.pause();
-  ytFrame.src = embedUrl || YT_EMBED;
-  ytTitle.textContent = title || YT_DEFAULT_TITLE;
-  ytNote.innerHTML = title ? 'Playing right here on the page. If a video ever refuses to embed, <a href="https://www.youtube.com/@Lumarbeats" target="_blank" rel="noopener">open the channel on YouTube</a>.' : YT_DEFAULT_NOTE;
-  ytOverlay.hidden = false;
-  document.body.classList.add('yt-open');
-  ytClose.focus();
-}
-function closeYT(){
-  ytOverlay.hidden = true;
-  ytFrame.removeAttribute('src');
-  document.body.classList.remove('yt-open');
-}
-document.querySelectorAll('a[href*="youtube.com"], a[href*="youtu.be"]').forEach(function(a){
-  /* Only links marked data-yt play in the overlay (the LuMar Beats
-     channel). Every other YouTube link — the "Karma" video, the
-     UNCENSORED album playlist — opens on YouTube itself: the Karma
-     embed throws "Video player configuration error" (Error 153)
-     in-page, so it is never embedded here. */
-  if(!a.hasAttribute('data-yt') && !a.hasAttribute('data-yt-video') && !a.hasAttribute('data-yt-playlist')) return;
-  a.addEventListener('click', function(e){
-    e.preventDefault();
-    var v = a.getAttribute('data-yt-video');
-    var pl = a.getAttribute('data-yt-playlist');
-    var url = null;
-    if(v) url = 'https://www.youtube.com/embed/' + v + '?autoplay=1&rel=0&playsinline=1';
-    else if(pl) url = 'https://www.youtube.com/embed/videoseries?list=' + pl + '&autoplay=1&rel=0&playsinline=1';
-    openYT(url, a.getAttribute('data-yt-title'));
-  });
-});
-ytClose.addEventListener('click', closeYT);
-ytOverlay.addEventListener('click', function(e){ if(e.target === ytOverlay) closeYT(); });
-document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !ytOverlay.hidden) closeYT(); });
+/* ================= YouTube links =================
+   Every YouTube link on the page is a plain link that opens on
+   YouTube in a new tab. There is deliberately NO in-page overlay
+   and NO click interception: the old overlay embed threw "Video
+   player configuration error" (Error 153) and swallowed taps, so
+   channel / video / playlist links now go straight to YouTube. */
 
 /* ================= 07 · merch: drag to orbit ================= */
 document.querySelectorAll('.merch-stage').forEach(function(stage){
@@ -1314,6 +1251,12 @@ document.querySelectorAll('.merch-stage').forEach(function(stage){
       });
     }, { threshold: 0, rootMargin: '500px 0px 500px 0px' });
     chapters.forEach(function(c){ io.observe(c); });
+    /* Failsafe: a chapter must NEVER stay invisible (its links
+       unclickable) if the observer stalls in a webview — reveal
+       everything shortly after load regardless. */
+    setTimeout(function(){
+      chapters.forEach(function(c){ c.classList.add('in'); });
+    }, 2500);
   } else {
     chapters.forEach(function(c){ c.classList.add('in'); });
   }
