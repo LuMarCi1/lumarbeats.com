@@ -962,6 +962,36 @@ BEATS.forEach(function(b){ TRACKS.push({ n:b.n, src:b.src, full:false }); });
 SONGS.forEach(function(sg){ TRACKS.push({ n:sg.n, src:sg.src, full:true }); });
 ALBUM.forEach(function(al){ TRACKS.push({ n:al.n, src:al.src, full:true, by:"Tim Black · prod. LuMar Beats" }); });
 
+/* ---- auto-level: every track plays at the same loudness ----
+   Each file's integrated loudness was measured off the real audio
+   (BS.1770 / ffmpeg loudnorm, Nov 15, 2026). The raw files span
+   −6.2 to −20.1 LUFS — a ~14 dB jump between the quietest song and
+   the hottest preview, which is why the volume used to lurch from
+   track to track. LEVELS holds the per-track gain (dB) that lands
+   every track on −14 LUFS, the streaming standard; boosts are
+   capped so the gained-up true peak stays around −1 dBTP, and the
+   limiter in the playback chain (see ensureViz) trims whatever
+   overshoot is left. Keyed by file name so a track keeps its level
+   in every slot it appears in (the Eras card and the store share
+   the same preview file). */
+var LEVELS = {
+  "preview-nothing.m4a": -4.0, "preview-outtahere.m4a": -7.8,
+  "preview-whatyouon.m4a": -4.7, "preview-virallove.m4a": -5.8,
+  "preview-arson.m4a": -6.4, "preview-newmoney.m4a": -6.3,
+  "song-whathewants.m4a": 0.5, "song-neveragain.m4a": -4.4,
+  "song-bossbeat.m4a": 1.0, "song-toptier.m4a": 5.4,
+  "song-highenergy.m4a": -0.5, "song-nofreewins.m4a": 0.4,
+  "album-intro.m4a": -3.6, "album-witanigga.m4a": -5.1,
+  "album-boi.m4a": -2.6, "album-fame.m4a": -4.2,
+  "album-karma.m4a": -4.4, "album-whyme.m4a": -2.1,
+  "album-undastand.m4a": -2.6, "album-blackbottle.m4a": -3.8
+};
+function trackLevelDb(t){
+  if(!t || !t.src) return 0;
+  var f = t.src.split('/').pop();
+  return (f in LEVELS) ? LEVELS[f] : 0;
+}
+
 /* ================= site-wide player + real EQ visualizer =================
    One shared audio element drives everything: every play button on the
    page, the pinned bottom bar, and a Web Audio analyser whose real
@@ -985,8 +1015,22 @@ function effDur(){
   return isFull() ? audio.duration : Math.min(audio.duration, 30);
 }
 
-/* ---- Web Audio analyser (created once, on a user gesture) ---- */
+/* ---- Web Audio chain (created once, on a user gesture) ----
+   audio → levelGain → limiter → analyser → speakers. The analyser
+   sits after the leveling, so the EQ visualizer and the panel
+   color-shift react to the sound at the level the listener
+   actually hears. The limiter is a safety net only: threshold
+   just under 0 dBFS, hard ratio, fast attack — it shaves the odd
+   peak on the boosted quiet tracks and stays out of the way of
+   everything else. */
 var vizCtx = null, analyser = null, freqData = null, vizOK = false;
+var levelGain = null;
+function applyLevel(){
+  if(!levelGain || !vizCtx) return;
+  var lin = Math.pow(10, trackLevelDb(TRACKS[trackIdx]) / 20);
+  /* short ramp, not a step, so a track change never clicks */
+  levelGain.gain.setTargetAtTime(lin, vizCtx.currentTime, 0.03);
+}
 function ensureViz(){
   if(vizCtx){ if(vizCtx.state === 'suspended') vizCtx.resume(); return; }
   try{
@@ -994,10 +1038,20 @@ function ensureViz(){
     if(!AC) return;
     vizCtx = new AC();
     var srcNode = vizCtx.createMediaElementSource(audio);
+    levelGain = vizCtx.createGain();
+    levelGain.gain.value = Math.pow(10, trackLevelDb(TRACKS[trackIdx]) / 20);
+    var limiter = vizCtx.createDynamicsCompressor();
+    limiter.threshold.value = -2;
+    limiter.knee.value = 3;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.2;
     analyser = vizCtx.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.78;
-    srcNode.connect(analyser);
+    srcNode.connect(levelGain);
+    levelGain.connect(limiter);
+    limiter.connect(analyser);
     analyser.connect(vizCtx.destination);
     freqData = new Uint8Array(analyser.frequencyBinCount);
     vizOK = true;
@@ -1194,6 +1248,7 @@ function loadTrack(i, autoplay){
   trackIdx = ((i % TRACKS.length) + TRACKS.length) % TRACKS.length;
   var t = TRACKS[trackIdx];
   audio.src = t.src; loaded = true;
+  applyLevel();
   barTitle.textContent = t.n;
   barSub.textContent = (t.by || 'LuMar Beats') + ' \u00B7 ' + (t.full ? 'full song' : '30-sec preview') + ' \u00B7 ' + (trackIdx + 1) + ' of ' + TRACKS.length;
   barProgFill.style.width = '0%'; barCur.textContent = '0:00'; barDur.textContent = '0:00';
