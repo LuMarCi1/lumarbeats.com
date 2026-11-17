@@ -1973,7 +1973,7 @@ document.querySelectorAll('.merch-stage').forEach(function(stage){
    green LED edge, the office desk with drawers, a real PS5 (tall
    white curved plates, black core, blue glow strip) standing
    vertical on the subwoofer at the right, graffiti tapestry,
-   framed art, purple/blue LED wash. NO ring light anywhere —
+   framed art, green/teal LED wash. NO ring light anywhere —
    Luther had it removed, it was in the way. At the desk stands
    little Luther (green cap, green hoodie — the chair is gone,
    he stands at the keys): his head node
@@ -1981,7 +1981,7 @@ document.querySelectorAll('.merch-stage').forEach(function(stage){
    (LittleLumar_Body, origin at the hips) bounces, both driven by
    the same analyser level as the EQ, so he bobs to the beat
    while a track plays. The site supplies its own lighting and
-   camera: PBR environment, soft PCF shadows, the purple/blue
+   camera: PBR environment, soft PCF shadows, the green/teal LED
    wash, and the same drag-to-look-around rig the procedural
    studio used. The Maschine pads (Pad_0_0 … Pad_3_3 in the
    model) chase and flare while a beat plays, driven by the
@@ -2007,7 +2007,7 @@ window.initStudio = function(){
      comfortable */
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.18;
+  renderer.toneMappingExposure = 0.85;
   renderer.setClearColor(0x04060c, 1);
   /* lite mode (phones) skips shadow maps and the PMREM environment
      bake below — both are heavy scene-setup costs on a phone GPU,
@@ -2022,15 +2022,18 @@ window.initStudio = function(){
     try{
       var pmrem = new THREE.PMREMGenerator(renderer);
       scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
-      if('environmentIntensity' in scene) scene.environmentIntensity = 0.38;
+      if('environmentIntensity' in scene) scene.environmentIntensity = 0.22;
       pmrem.dispose();
     }catch(e){}
   }
   var camera = new THREE.PerspectiveCamera(46, 1.6, 0.05, 40);
 
-  /* ---------- lights: the purple/blue wash (the GLB ships none) ---------- */
-  scene.add(new THREE.AmbientLight(0x35405e, 0.9));
-  var key = new THREE.DirectionalLight(0xcfd8ff, 1.15);
+  /* ---------- lights: the green/teal LED wash (the GLB ships none) ----------
+     Green dominates (his room: green/teal wash, purple/blue only in
+     places); the ceiling strip light cycles its color with the strip
+     mesh below, purple/green -> warm orange, like his video. */
+  scene.add(new THREE.AmbientLight(0x0d2b22, 0.45));
+  var key = new THREE.DirectionalLight(0x9fe8c0, 0.55);
   key.position.set(1.2, 3.4, 3.6); scene.add(key);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -2038,16 +2041,17 @@ window.initStudio = function(){
   key.shadow.camera.top = 3.2; key.shadow.camera.bottom = -1;
   key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; key.shadow.bias = -0.0004;
   key.target.position.set(0, 0.9, 0.5); scene.add(key.target);
-  var pPurple = new THREE.PointLight(0x8b3dff, 14, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple);
-  var pBlue = new THREE.PointLight(0x2a5cff, 11, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue);
-  var pCyan = new THREE.PointLight(0x37c8ff, 6, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan);
-  var pGreen = new THREE.PointLight(0x12b84b, 4, 4.5, 1.9); pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen);
+  var pPurple = new THREE.PointLight(0x7a2bff, 5, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple);
+  var pBlue = new THREE.PointLight(0x2a5cff, 4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue);
+  var pCyan = new THREE.PointLight(0x2ee6a8, 7, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); /* strip light — color cycles with the strip mesh */
+  var pGreen = new THREE.PointLight(0x0fd45e, 9, 4.5, 1.9); pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen);
   /* soft ceiling fill — light only, no fixture: the ring light
      that used to hang here is gone for good */
-  var pCeil = new THREE.PointLight(0xafc4ff, 5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil);
+  var pCeil = new THREE.PointLight(0x86ffd0, 2.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil);
 
   /* ---------- the Blender model ---------- */
   var padMats = [];
+  var stripMat = null; /* ceiling LED strip material — cycled in the loop */
   var tintTargets = []; /* {mat, base:THREE.Color, emissiveBase} — white/light materials the EQ washes */
   var lilHead = null, lilBody = null, lilBase = null; /* little Luther, wired to bob below */
   var bobLvl = 0, bobPhase = 0;
@@ -2100,6 +2104,14 @@ window.initStudio = function(){
       if(/Speaker[LR]_(woofer|surround|dustcap)$/.test(nm)){
         woofers.push({ o: o, z: o.position.z });
       }
+      /* ceiling LED strip: capture its material (cloned, like the
+         pads) so the render loop can cycle its color the way the
+         real strip cycles in his video — purple/green to warm
+         orange — instead of sitting fixed cyan */
+      if(nm === 'LEDStripBack' && o.material){
+        stripMat = o.material.clone();
+        o.material = stripMat;
+      }
       /* Maschine pads: each pad mesh gets its own copy of its
          material so the 16 pads can flare one by one */
       if(/^Pad_\d+_\d+$/.test(nm) && o.material && o.material.emissive){
@@ -2108,13 +2120,16 @@ window.initStudio = function(){
         padMats.push({ m: cloned, phase: padMats.length * 0.55, base: cloned.emissiveIntensity || 1 });
       }
       /* the model's white panels — MIDI white keys, sheet
-         curtains, the Speed Limit sign, white plastic — take
-         their color from the site EQ while music plays
-         (window.__eqHue / __eqLevel, written by the analyser) */
+         curtains, the Speed Limit sign, white plastic, and the
+         WALLS themselves (Plaster) + PS5 plates — take their color
+         from the site EQ while music plays (window.__eqHue /
+         __eqLevel, written by the analyser), so the white wall
+         panels light up with the visualizer, as Luther asked */
       var mat = o.material;
       if(mat && mat.name && !seenTint[mat.name] &&
          (mat.name === 'KeyWhite' || mat.name === 'Cotton' ||
-          mat.name === 'SpeedLimitMat' || mat.name === 'WhitePlastic')){
+          mat.name === 'SpeedLimitMat' || mat.name === 'WhitePlastic' ||
+          mat.name === 'Plaster' || mat.name === 'PS5White')){
         seenTint[mat.name] = true;
         tintTargets.push({ mat: mat, base: mat.color ? mat.color.clone() : null });
       }
@@ -2323,7 +2338,20 @@ window.initStudio = function(){
           woofers[wi].o.position.z = woofers[wi].z + wPulse;
         }
       }
-      pCeil.intensity = playing && !REDUCED ? 5 + Math.sin(t * 7.5) * 1.2 : 5;
+      pCeil.intensity = playing && !REDUCED ? 2.5 + Math.sin(t * 7.5) * 0.6 : 2.5;
+      /* ceiling LED strip cycles its color like the real one:
+         warm orange -> green/teal -> purple/blue -> back, about
+         20s a lap; the strip light (pCyan) follows the same hue
+         so the wash on the room moves with the strip. Static
+         green/teal when reduced motion is on. */
+      var stripHue;
+      if(REDUCED){ stripHue = 150; }
+      else {
+        var stripCyc = (t * 0.05) % 1;
+        stripHue = stripCyc < 0.5 ? 35 + 245 * (stripCyc * 2) : 280 - 245 * ((stripCyc - 0.5) * 2);
+      }
+      if(stripMat && stripMat.emissive){ stripMat.emissive.setHSL(stripHue / 360, 0.9, 0.55); }
+      pCyan.color.setHSL(stripHue / 360, 0.9, 0.6);
       /* white panels color-shift with the EQ */
       if(playing && !REDUCED && window.__eqHue != null){
         eqTint.setHSL(((window.__eqHue % 360) + 360) % 360 / 360, 0.85, 0.6);
