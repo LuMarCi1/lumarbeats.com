@@ -2715,13 +2715,13 @@ window.initStudio = function(){
   function camDamp(cur, tgt, lambda, dt){
     return cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
   }
-  var dragging = false, returning = false, lastX = 0, lastY = 0;
+  var dragging = false, returning = false, lastX = 0, lastY = 0, lastMove = 0;
   function snapHome(){
     az = azT = HERO_AZ; pol = polT = HERO_POL;
     returning = false;
   }
   canvas.addEventListener('pointerdown', function(e){
-    dragging = true; returning = false; lastX = e.clientX; lastY = e.clientY;
+    dragging = true; returning = false; lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
     try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
   });
   canvas.addEventListener('pointermove', function(e){
@@ -2734,7 +2734,7 @@ window.initStudio = function(){
        ±0.25 keeps the logo in frame even at the extremes. */
     azT = Math.max(-DRAG_AZ, Math.min(DRAG_AZ, azT));
     polT = Math.max(1.25, Math.min(1.52, polT));
-    lastX = e.clientX; lastY = e.clientY;
+    lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
   });
   function endDrag(){
     dragging = false;
@@ -2745,6 +2745,17 @@ window.initStudio = function(){
   }
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
+  /* BELT AND BRACES (Nov 19, 4:23 PM — the return never fired):
+     pointerup was the only event that used to end a drag, and if
+     it was missed the camera parked where the drag left it.
+     pointerleave covers a release outside the canvas when
+     capture failed, lostpointercapture covers capture being
+     taken away, and window blur covers the user switching away
+     (alt-tab, picking up the phone to record) mid-drag. Any of
+     them ends the drag and starts the return home. */
+  canvas.addEventListener('pointerleave', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+  window.addEventListener('blur', endDrag);
 
   function size(){
     var w = canvas.clientWidth || drop.clientWidth || 300;
@@ -2834,6 +2845,19 @@ window.initStudio = function(){
        frame-rate independent damp; az/pol chase them directly,
        so the hand still feels immediate and the return reads
        as one smooth glide, not a snap. */
+    /* SAFETY NET (Nov 19, 4:23 PM — "Now it's really stuck"):
+       the return used to trigger ONLY on pointerup, so if that
+       one event was missed the camera parked at the dragged
+       spot forever. The loop now catches it two ways: whenever
+       the camera is off-centre and no drag is in progress, the
+       return is on; and if a drag is supposedly in progress
+       but the pointer has not moved for 2s, the drag is dead —
+       force it off and bring the camera home. Either way the
+       camera comes home, even if pointerup never landed. */
+    if(azT !== HERO_AZ || polT !== HERO_POL){
+      if(!dragging) returning = true;
+      else if(performance.now() - lastMove > 2000){ dragging = false; returning = true; }
+    }
     if(returning){
       azT = camDamp(azT, HERO_AZ, 4.0, dt);
       polT = camDamp(polT, HERO_POL, 4.0, dt);
