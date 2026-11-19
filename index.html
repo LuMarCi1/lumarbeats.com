@@ -180,9 +180,6 @@
   #studio3d{position:absolute;inset:0;width:100%;height:100%;z-index:0;cursor:grab;touch-action:pan-y}
   #studio3d:active{cursor:grabbing}
   .drop-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg, rgba(4,6,12,.68) 0%, rgba(4,6,12,0) 26%, rgba(4,6,12,0) 50%, rgba(4,6,12,.88) 88%, var(--bg) 100%)}
-  /* the idle tour's cut: a quick dip to black while the camera
-     snaps to the next preset view, then a fade back in */
-  #camCut{position:absolute;inset:0;z-index:2;pointer-events:none;background:#04060c;opacity:0}
   .drop-copy{position:relative;z-index:3;margin-top:auto;pointer-events:none;width:min(560px,100%)}
   .drop-copy .btn{pointer-events:auto}
   .drop-copy p{margin:0 auto 16px;max-width:100%;color:#cfe6d2;font-size:1.05rem;line-height:1.55;text-shadow:0 1px 12px rgba(0,0,0,.8)}
@@ -510,7 +507,6 @@
     <h1 class="sr-only">LuMar Beats</h1>
     <canvas id="studio3d" aria-label="LuMar's studio in 3D — his Maschine MK3 and MIDI keyboard on the desk, three monitors, the big wooden LuMAR BEATS sign, his PS5, and little LuMar standing at the desk bobbing to the music. Drag to look around."></canvas>
     <div class="drop-shade" aria-hidden="true"></div>
-    <div id="camCut" aria-hidden="true"></div>
     <img class="drop-fallback" id="dropFallback" src="assets/hero-still.jpg" alt="LuMar's studio — the big wooden LuMAR BEATS sign over three monitors, Maschine and keys under purple and blue light" />
     <div class="drop-copy">
       <p>Hip-hop &amp; R&amp;B instrumentals from Beaufort to the world — made right here in this room, on a Maschine MK3 and a MIDI keyboard. Nothing else. Scroll the journey — find your beat, license it direct, and hear every era of the sound.</p>
@@ -2282,7 +2278,7 @@ window.initStudio = function(){
      black box), and a restored context re-sizes, flags the
      materials for re-upload and returns to the live scene; the
      blank-frame watchdog in the render loop then verifies the
-     recovery actually produced a picture. finishCut / size /
+     recovery actually produced a picture. snapHome / size /
      showLive are hoisted function declarations in this scope,
      and scene / modelReady are settled before any event can
      fire, so wiring the listeners here is safe. */
@@ -2290,7 +2286,7 @@ window.initStudio = function(){
   canvas.addEventListener('webglcontextlost', function(e){
     e.preventDefault();
     glLost = true;
-    finishCut();
+    snapHome();
     showFallback();
   });
   canvas.addEventListener('webglcontextrestored', function(){
@@ -2682,156 +2678,73 @@ window.initStudio = function(){
     if(f && !glLost) f.style.display = 'none';
     if(!glLost) canvas.style.display = 'block';
     var cue = document.querySelector('.cue-drag');
-    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and the camera tours on its own, cutting between views \u00B7 ';
+    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 ';
   }, undefined, function(){ showFallback(); });
 
-  /* ---------- camera rig: idle tour with CUTS + limited drag ----------
-     Untouched, the camera tours on its own: it holds a preset
-     view (front wide, desk wide, both side angles) for a
-     few seconds, drifting like a slow dolly — easing in after
-     each cut, wandering gently on layered slow sines, pushing
-     in a touch over the hold, then easing back to rest before
-     it CUTS to the next: a quick dip to black, the camera snaps
-     to the new angle, and the picture fades back in, like a
-     video edit. Every preset sits INSIDE the same limited orbit
-     the user gets — grabbing the canvas stops the tour instantly,
-     the drag clamps below are unchanged (no full spin, no zoom,
-     no free roam), and after a few seconds hands-off the tour
-     resumes with a cut from wherever the camera sits. */
+  /* ---------- camera rig: FIXED HERO + drag-only, rebuilt from scratch ----------
+     Luther, Nov 19, 4:11 PM — "Even when I move the studio myself
+     still stay on the left side. Delete all camera and camera
+     movements and start from scratch." The old rig failed him
+     four times: the tour parked left, the resume advanced to
+     the next view instead of home, and now the drag itself
+     left the camera stuck on the left side. So the whole
+     mechanism is GONE — no auto-tour, no cuts, no drift, no
+     breathe, no push-in, no resume, no sway, no scroll dolly.
+     The camera has ONE home and it never moves on its own:
+       HERO — az 0, pol 1.47, radiusBase 4.8, fov 50, target
+       y 1.20: dead center, the big green LuMar Beats logo on
+       the wood planks (y 1.28–2.28) and Lil LuMar both in
+       frame, wide, never past him.
+     Drag to look around, clamped TIGHT (az ±0.25, so the logo
+     stays in frame even at the extremes; pol 1.25–1.52). On
+     release the camera eases back to center over ~1s. The
+     camera only moves when he drags it, and it always comes
+     home. The only clamps that stay are safety, not movement:
+     the dolly floor (r never below 97% of radiusBase — never
+     past Lil LuMar) and the position clamp (never leave the
+     room).
+     PHASE 2 (later, only after Luther confirms this phase is
+     right): the auto tour comes back. It is NOT in this build. */
+  var HERO_AZ = 0, HERO_POL = 1.47;
+  var DRAG_AZ = 0.25; /* tight drag clamp — the logo stays in frame even at the extremes */
   var target = new THREE.Vector3(0, 1.20, 0.55);
-  var az = 0, pol = 1.47, radiusBase = 4.8;
-  var azT = az, polT = pol, lastTouch = -10;
-  /* NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM — "it still is
-     zooming in to close it should not go pass lil lumar"): the
-     camera's closest approach stops well behind the figure and
-     it NEVER dollies in. radiusBase is pulled back to 4.8 desktop
-     (the front-wide shot sits near the room's open front, z 5.4
-     clamp), the push-in is GONE (pushIn = 1.0, no forward dolly
-     during a hold — the drift still moves the frame, but the
-     camera never creeps closer), and the dolly has a HARD FLOOR
-     (r is clamped to >= 0.97 * radiusBase in the loop below) so
-     no mechanism — push-in, breathe, scroll — can ever bring it
-     in past the figure. The FOV is widened a touch (46 -> 50
-     desktop) so the room reads wider and the figure sits smaller
-     in frame. The logo rule stands (Luther, 1:20 PM): the big
-     green LuMar Beats logo on the wood planks (y 1.28–2.28) is
-     ALWAYS in frame — target.y 1.20, hero dead center (az 0),
-     side presets ±0.25 levelled (pol 1.46). No up-close shots.
-     STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM — "its like the cam
-     is only on the left side"): three screenshots all parked
-     left — Speed Limit 35, Behringer amp, subwoofer looming,
-     Lil LuMar cut off, logo NOT in frame. The side presets are
-     pulled in further (±0.36 -> ±0.25) so the logo stays in
-     frame even at the side views, the drag clamp is tightened
-     (±0.70 -> ±0.40) so a drag can't swing the camera to an
-     extreme left angle, and the tour now comes BACK TO CENTER
-     on resume (see the loop below) instead of advancing to
-     whatever view was next. */
-  var CINE_VIEWS = [
-    { az: 0, pol: 1.47, r: 1.0 },  /* front wide — dead center, the whole room, sign in frame */
-    { az: 0.08, pol: 1.44, r: 0.98 },  /* desk wide — Maschine, keys, little Luther, pulled back */
-    { az: -0.25, pol: 1.46, r: 1.0 }, /* side angle, from the left — near-frontal, sign in frame */
-    { az: 0.25, pol: 1.46, r: 1.0 }    /* side angle, from the right — the PS5 side, near-frontal, sign in frame */
-  ];
-  var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
-  /* Cinematic tour pacing: longer holds than the old 5.5s cut
-     rhythm, so each view has time to settle, drift and push in
-     before the next dip to black. */
-  var CINE_HOLD = 7.4;
+  var az = HERO_AZ, pol = HERO_POL, radiusBase = 4.8;
+  var azT = az, polT = pol;
   /* Frame-rate independent damping: 1 - exp(-lambda * dt) gives
-     the same ease-out at 30, 60 or 120Hz. The old per-frame
-     factors (dt * 0.8 toward the target, then a flat 0.06 lerp
-     on top) changed speed with refresh rate and stacked two
-     mismatched easings, which is why the tour felt stiff on
-     one screen and laggy-jerky on another. */
-  function cineDamp(cur, tgt, lambda, dt){
+     the same ease-out at 30, 60 or 120Hz. */
+  function camDamp(cur, tgt, lambda, dt){
     return cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
   }
-  /* Smootherstep (Perlin): zero slope at both ends, so drift
-     ramps in and out with no visible start, stop or reversal
-     kink — the difference between a dolly move and a wobble. */
-  function cineSmooth(x){
-    x = Math.max(0, Math.min(1, x));
-    return x * x * x * (x * (x * 6 - 15) + 10);
+  var dragging = false, returning = false, lastX = 0, lastY = 0;
+  function snapHome(){
+    az = azT = HERO_AZ; pol = polT = HERO_POL;
+    returning = false;
   }
-  /* Smoothed look-target drift, eased toward its goal every
-     frame so the camera's gaze wanders a breath off centre
-     and back instead of locking dead-ahead the whole hold. */
-  var lookDriftX = 0, lookDriftY = 0;
-  var camCutEl = document.getElementById('camCut');
-  /* ---------- the cut can NEVER stick on black ----------
-     The old cut set the overlay to full black synchronously
-     and trusted a nested pair of requestAnimationFrame
-     callbacks to fade it back in. If that chain stalled — a
-     throttled or hidden tab, an occluded window, a dropped
-     callback — nothing ever cleared the overlay again, and
-     the studio sat black while the rest of the page stayed
-     live: exactly the dropout in Luther's screenshots. The
-     cut is now a state machine driven by the render loop off
-     wall-clock time: dip to black over CUT_DOWN, snap the
-     camera behind the black, fade back over CUT_UP. Because
-     the phase is computed from elapsed time, any stall
-     resolves itself on the very next frame, which lands past
-     the end of the cut and clears the overlay — the dip
-     always completes. A watchdog in stepCut also forces the
-     overlay clear whenever no cut is running, and regaining
-     visibility force-finishes any cut in flight. */
-  var cutStart = -1, cutSnapped = false;
-  var CUT_DOWN = 0.12, CUT_UP = 0.45; /* seconds */
-  function snapToView(){
-    var cv = CINE_VIEWS[cineIdx];
-    az = azT = cv.az; pol = polT = cv.pol; cineR = cv.r;
-    cutSnapped = true;
-  }
-  function finishCut(){
-    if(cutStart >= 0 && !cutSnapped) snapToView();
-    cutStart = -1; cutSnapped = false;
-    if(camCutEl){ camCutEl.style.transition = 'none'; camCutEl.style.opacity = '0'; }
-  }
-  function doCut(){
-    if(cutStart >= 0) return;
-    cutStart = performance.now();
-    cutSnapped = false;
-  }
-  function stepCut(now){
-    if(cutStart < 0){
-      if(camCutEl){
-        var o = camCutEl.style.opacity;
-        if(o !== '' && o !== '0'){ camCutEl.style.transition = 'none'; camCutEl.style.opacity = '0'; }
-      }
-      return;
-    }
-    var el = (now - cutStart) / 1000;
-    if(el >= CUT_DOWN && !cutSnapped) snapToView();
-    if(el >= CUT_DOWN + CUT_UP){ finishCut(); return; }
-    var op = el < CUT_DOWN ? el / CUT_DOWN : 1 - (el - CUT_DOWN) / CUT_UP;
-    if(camCutEl){ camCutEl.style.transition = 'none'; camCutEl.style.opacity = String(Math.max(0, Math.min(1, op))); }
-  }
-  document.addEventListener('visibilitychange', function(){
-    if(!document.hidden) finishCut();
-  });
-  var dragging = false, lastX = 0, lastY = 0;
   canvas.addEventListener('pointerdown', function(e){
-    dragging = true; lastX = e.clientX; lastY = e.clientY; lastTouch = perfNow();
+    dragging = true; returning = false; lastX = e.clientX; lastY = e.clientY;
     try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
   });
   canvas.addEventListener('pointermove', function(e){
     if(!dragging) return;
     azT += (e.clientX - lastX) * 0.005;
     polT -= (e.clientY - lastY) * 0.003;
-    /* STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM): the drag clamp
-       was ±0.70, wide enough to swing the camera to an extreme
-       left angle where the back wall (and logo) leaves the
-       frame. Tightened to ±0.40 so a drag stays near-frontal
-       and the logo stays in frame. */
-    azT = Math.max(-0.40, Math.min(0.40, azT));
+    /* TIGHT drag clamp (Luther, Nov 19, 4:11 PM — rebuild): the
+       old ±0.40 clamp still let a drag swing far enough left
+       that the logo left the frame and the camera stuck there.
+       ±0.25 keeps the logo in frame even at the extremes. */
+    azT = Math.max(-DRAG_AZ, Math.min(DRAG_AZ, azT));
     polT = Math.max(1.25, Math.min(1.52, polT));
-    lastX = e.clientX; lastY = e.clientY; lastTouch = perfNow();
+    lastX = e.clientX; lastY = e.clientY;
   });
-  function endDrag(){ dragging = false; lastTouch = perfNow(); }
+  function endDrag(){
+    dragging = false;
+    /* let go and the camera comes home: if the drag left it off
+       centre, ease back over ~1s; if it is already home, this
+       is a no-op. */
+    if(azT !== HERO_AZ || polT !== HERO_POL) returning = true;
+  }
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
-  function perfNow(){ return performance.now() / 1000; }
 
   function size(){
     var w = canvas.clientWidth || drop.clientWidth || 300;
@@ -2884,9 +2797,7 @@ window.initStudio = function(){
   }
   function recoverBlank(){
     blankRecoveries++;
-    finishCut();
-    cineIdx = 0;
-    snapToView();
+    snapHome();
     size();
     var gl = renderer.getContext();
     if(gl.isContextLost() && renderer.forceContextRestore) renderer.forceContextRestore();
@@ -2899,7 +2810,6 @@ window.initStudio = function(){
   var slowFrames = 0, prSteps = 0;
   (function loop(now){
     requestAnimationFrame(loop);
-    stepCut(now);
     if(!inView){ last = now; return; }
     var dt = Math.min(0.05, (now - last) / 1000); last = now;
     /* adaptive resolution: if frames stay slow (a weak GPU, or a
@@ -2914,103 +2824,46 @@ window.initStudio = function(){
     }
     var t = now / 1000;
     var playing = document.body.classList.contains('beat-playing');
-    /* idle tour: engages a few seconds after the last touch
-       (and once the model is in), holds each preset for
-       CINE_HOLD seconds with a slow cinematic drift, then CUTS
-       to the next. Resuming the tour after a drag also cuts —
-       to the next view, from wherever the user left the camera.
-       Any grab kills it the same frame, and the user's own drag
-       stays inside the same clamped orbit (az ±0.70, pol
-       1.15–1.52, fixed dolly) plus a per-frame position clamp,
-       so the camera can never leave the room.
-       The drift itself is built like a dolly move, not an
-       orbit: an envelope (smootherstep in over ~1.6s, back out
-       over the last ~1.2s) fades the wander in after each cut
-       and settles it to rest before the next one, so cuts land
-       on a still frame instead of mid-sway. Inside the envelope,
-       azimuth and polar wander on layered sines at unrelated
-       slow rates — no single period to lock onto, no sharp
-       reversal — while the dolly eases a few percent closer
-       across the whole hold (a slow push-in) over a faint
-       breathing sine. The gaze drifts a breath off centre on
-       the same envelope. All targets are chased with
-       frame-rate independent damping, and the final az / pol
-       follow uses a gentler lambda on tour than on drag, so
-       the tour glides and the hand still feels direct. */
-    /* STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM): the tour used to
-       resume 4s after a drag and advance to whatever view was
-       next, so a dragged-left camera could sit on the left
-       side for a long time. Now it resumes after 2s and comes
-       BACK TO CENTER (front view, logo + Lil LuMar) on every
-       resume — the cut only fires when the view actually
-       changes, so page load (already front) stays clean. */
-    var cineOn = !REDUCED && !dragging && modelReady && (perfNow() - lastTouch > 2);
-    var lookGoalX = 0, lookGoalY = 0;
-    if(cineOn){
-      if(!cineWasOn){
-        cineWasOn = true; cineTimer = 0;
-        if(cineIdx !== 0){ cineIdx = 0; doCut(); }
+    /* FIXED HERO (Luther, Nov 19, 4:11 PM — rebuild from scratch):
+       the camera sits at home — az 0, pol 1.47, radiusBase —
+       and NEVER moves on its own. No tour, no cuts, no drift,
+       no breathe, no push-in, no sway, no scroll dolly. The
+       only motion is the user's own drag (azT/polT, clamped
+       ±0.25), and on release the camera eases back to center
+       over ~1s. While returning, azT/polT glide home on a
+       frame-rate independent damp; az/pol chase them directly,
+       so the hand still feels immediate and the return reads
+       as one smooth glide, not a snap. */
+    if(returning){
+      azT = camDamp(azT, HERO_AZ, 4.0, dt);
+      polT = camDamp(polT, HERO_POL, 4.0, dt);
+      if(Math.abs(azT - HERO_AZ) < 0.001 && Math.abs(polT - HERO_POL) < 0.001){
+        azT = HERO_AZ; polT = HERO_POL; returning = false;
       }
-      cineTimer += dt;
-      if(cineTimer > CINE_HOLD){
-        cineTimer = 0;
-        cineIdx = (cineIdx + 1) % CINE_VIEWS.length;
-        doCut();
-      }
-      var cv = CINE_VIEWS[cineIdx];
-      var ct = cineTimer;
-      var env = cineSmooth(ct / 1.6) * (1 - cineSmooth((ct - (CINE_HOLD - 1.2)) / 1.2));
-      var azDrift = env * (Math.sin(ct * 0.31) * 0.05 + Math.sin(ct * 0.13 + 1.7) * 0.03);
-      var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.02 + Math.cos(ct * 0.11 + 0.4) * 0.012);
-      /* NO push-in — the dolly stays put across the hold, plus a
-         barely-there breathing so the frame never feels frozen.
-         NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM): the old
-         push-in dollied the camera forward every hold, which is
-         the "zooming in" he kept flagging. pushIn is 1.0 now —
-         the camera never creeps closer; only the angle drifts. */
-      var pushIn = 1.0;
-      var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.014;
-      azT = cineDamp(azT, cv.az + azDrift, 2.4, dt);
-      polT = cineDamp(polT, cv.pol + polDrift, 2.4, dt);
-      cineR = cineDamp(cineR, cv.r * pushIn + breathe, 1.6, dt);
-      lookGoalX = env * Math.sin(ct * 0.17 + 0.5) * 0.06;
-      lookGoalY = env * Math.sin(ct * 0.14 + 2.4) * 0.03;
-    } else {
-      cineWasOn = false;
-      cineTimer = 0;
-      cineR = cineDamp(cineR, 1, 3.2, dt);
     }
-    lookDriftX = cineDamp(lookDriftX, lookGoalX, 2.0, dt);
-    lookDriftY = cineDamp(lookDriftY, lookGoalY, 2.0, dt);
-    var followLambda = cineOn ? 3.6 : 7.5;
-    az = cineDamp(az, azT, followLambda, dt);
-    pol = cineDamp(pol, polT, followLambda, dt);
-    var rect = drop.getBoundingClientRect();
-    var prog = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height)));
-    var r = radiusBase * cineR - prog * 0.35;
+    az = camDamp(az, azT, 7.5, dt);
+    pol = camDamp(pol, polT, 7.5, dt);
+    var r = radiusBase;
     /* HARD FLOOR — the camera NEVER goes past Lil LuMar (Luther,
-       Nov 19, 1:43 PM). No mechanism — push-in, breathe, scroll —
-       may bring the dolly closer than 97% of radiusBase. */
+       Nov 19, 1:43 PM). No mechanism may bring the dolly closer
+       than 97% of radiusBase. With a fixed dolly this is a
+       safety net, kept so the rule survives any future edit. */
     r = Math.max(r, radiusBase * 0.97);
-    /* vertical sway slowed right down and layered: the old
-       single sin(t * 0.4) bob read as a metronome; two slow,
-       unrelated sines at a third of the amplitude feel like a
-       camera breathing, not bouncing */
-    var sp = Math.sin(pol), sway = REDUCED ? 0 : Math.sin(t * 0.21) * 0.007 + Math.sin(t * 0.083 + 1.3) * 0.005;
+    var sp = Math.sin(pol);
     camera.position.set(
       target.x + r * sp * Math.sin(az),
-      target.y + r * Math.cos(pol) + sway,
+      target.y + r * Math.cos(pol),
       target.z + r * sp * Math.cos(az)
     );
     /* v4: the camera can NEVER leave the room - clamp its position into
-       the safe box every frame (tour, drag, desktop, mobile). Room
+       the safe box every frame (drag, desktop, mobile). Room
        bounds in Three.js coords: side walls x +/-2.3, back wall z 0,
        ceiling y 2.6, floor y 0; the front is open, so z may run out
        to 5.4 (the front wide shot sits out there). */
     camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
     camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
     camera.position.z = Math.max(0.25, Math.min(5.4, camera.position.z));
-    camera.lookAt(target.x + lookDriftX, target.y - prog * 0.1 + lookDriftY, target.z);
+    camera.lookAt(target.x, target.y, target.z);
     if(modelReady){
       /* Maschine pads chase; they flare while a beat plays */
       var speed = playing ? 7.5 : 2.1, amp = playing ? 1.15 : 0.5;
