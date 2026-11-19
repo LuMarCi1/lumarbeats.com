@@ -2700,15 +2700,17 @@ window.initStudio = function(){
 
   /* ---------- camera rig: idle tour with CUTS + limited drag ----------
      Untouched, the camera tours on its own: it holds a preset
-     view (front wide, desk close-up, both side angles) for a few
-     seconds with a slow drift, then CUTS to the next — a quick
-     dip to black, the camera snaps to the new angle, and the
-     picture fades back in, like a video edit. Every preset sits
-     INSIDE the same limited orbit the user gets — grabbing the
-     canvas stops the tour instantly, the drag clamps below are
-     unchanged (no full spin, no zoom, no free roam), and after
-     a few seconds hands-off the tour resumes with a cut from
-     wherever the camera sits. */
+     view (front wide, desk close-up, both side angles) for a
+     few seconds, drifting like a slow dolly — easing in after
+     each cut, wandering gently on layered slow sines, pushing
+     in a touch over the hold, then easing back to rest before
+     it CUTS to the next: a quick dip to black, the camera snaps
+     to the new angle, and the picture fades back in, like a
+     video edit. Every preset sits INSIDE the same limited orbit
+     the user gets — grabbing the canvas stops the tour instantly,
+     the drag clamps below are unchanged (no full spin, no zoom,
+     no free roam), and after a few seconds hands-off the tour
+     resumes with a cut from wherever the camera sits. */
   var target = new THREE.Vector3(0, 1.02, 0.55);
   var az = -0.06, pol = 1.47, radiusBase = 3.35;
   var azT = az, polT = pol, lastTouch = -10;
@@ -2719,6 +2721,30 @@ window.initStudio = function(){
     { az: 0.45, pol: 1.45, r: 0.85 }    /* side angle, from the right — the PS5 side */
   ];
   var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
+  /* Cinematic tour pacing: longer holds than the old 5.5s cut
+     rhythm, so each view has time to settle, drift and push in
+     before the next dip to black. */
+  var CINE_HOLD = 7.4;
+  /* Frame-rate independent damping: 1 - exp(-lambda * dt) gives
+     the same ease-out at 30, 60 or 120Hz. The old per-frame
+     factors (dt * 0.8 toward the target, then a flat 0.06 lerp
+     on top) changed speed with refresh rate and stacked two
+     mismatched easings, which is why the tour felt stiff on
+     one screen and laggy-jerky on another. */
+  function cineDamp(cur, tgt, lambda, dt){
+    return cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
+  }
+  /* Smootherstep (Perlin): zero slope at both ends, so drift
+     ramps in and out with no visible start, stop or reversal
+     kink — the difference between a dolly move and a wobble. */
+  function cineSmooth(x){
+    x = Math.max(0, Math.min(1, x));
+    return x * x * x * (x * (x * 6 - 15) + 10);
+  }
+  /* Smoothed look-target drift, eased toward its goal every
+     frame so the camera's gaze wanders a breath off centre
+     and back instead of locking dead-ahead the whole hold. */
+  var lookDriftX = 0, lookDriftY = 0;
   var camCutEl = document.getElementById('camCut');
   /* ---------- the cut can NEVER stick on black ----------
      The old cut set the overlay to full black synchronously
@@ -2868,13 +2894,30 @@ window.initStudio = function(){
     var t = now / 1000;
     var playing = document.body.classList.contains('beat-playing');
     /* idle tour: engages a few seconds after the last touch
-       (and once the model is in), holds each preset ~5.5s with
-       a slow drift, then CUTS to the next. Resuming the tour
-       after a drag also cuts — to the next view, from wherever
-       the user left the camera. Any grab kills it the same
-       frame, and the user's own drag stays inside the same
-       clamped orbit (az ±0.70, pol 1.15–1.52, fixed dolly) plus a per-frame position clamp, so the camera can never leave the room. */
+       (and once the model is in), holds each preset for
+       CINE_HOLD seconds with a slow cinematic drift, then CUTS
+       to the next. Resuming the tour after a drag also cuts —
+       to the next view, from wherever the user left the camera.
+       Any grab kills it the same frame, and the user's own drag
+       stays inside the same clamped orbit (az ±0.70, pol
+       1.15–1.52, fixed dolly) plus a per-frame position clamp,
+       so the camera can never leave the room.
+       The drift itself is built like a dolly move, not an
+       orbit: an envelope (smootherstep in over ~1.6s, back out
+       over the last ~1.2s) fades the wander in after each cut
+       and settles it to rest before the next one, so cuts land
+       on a still frame instead of mid-sway. Inside the envelope,
+       azimuth and polar wander on layered sines at unrelated
+       slow rates — no single period to lock onto, no sharp
+       reversal — while the dolly eases a few percent closer
+       across the whole hold (a slow push-in) over a faint
+       breathing sine. The gaze drifts a breath off centre on
+       the same envelope. All targets are chased with
+       frame-rate independent damping, and the final az / pol
+       follow uses a gentler lambda on tour than on drag, so
+       the tour glides and the hand still feels direct. */
     var cineOn = !REDUCED && !dragging && modelReady && (perfNow() - lastTouch > 4);
+    var lookGoalX = 0, lookGoalY = 0;
     if(cineOn){
       if(!cineWasOn){
         cineWasOn = true; cineTimer = 0;
@@ -2882,26 +2925,43 @@ window.initStudio = function(){
         doCut();
       }
       cineTimer += dt;
-      if(cineTimer > 5.5){
+      if(cineTimer > CINE_HOLD){
         cineTimer = 0;
         cineIdx = (cineIdx + 1) % CINE_VIEWS.length;
         doCut();
       }
       var cv = CINE_VIEWS[cineIdx];
-      var cineDrift = Math.sin(t * 0.12) * 0.035;
-      azT += (cv.az + cineDrift - azT) * Math.min(1, dt * 0.8);
-      polT += (cv.pol - polT) * Math.min(1, dt * 0.8);
-      cineR += (cv.r - cineR) * Math.min(1, dt * 0.8);
+      var ct = cineTimer;
+      var env = cineSmooth(ct / 1.6) * (1 - cineSmooth((ct - (CINE_HOLD - 1.2)) / 1.2));
+      var azDrift = env * (Math.sin(ct * 0.31) * 0.026 + Math.sin(ct * 0.13 + 1.7) * 0.017);
+      var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.011 + Math.cos(ct * 0.11 + 0.4) * 0.007);
+      /* slow push-in across the hold, plus a barely-there
+         breathing of the dolly so the frame never feels frozen */
+      var pushIn = 1.045 - 0.09 * cineSmooth(ct / CINE_HOLD);
+      var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.008;
+      azT = cineDamp(azT, cv.az + azDrift, 2.4, dt);
+      polT = cineDamp(polT, cv.pol + polDrift, 2.4, dt);
+      cineR = cineDamp(cineR, cv.r * pushIn + breathe, 1.6, dt);
+      lookGoalX = env * Math.sin(ct * 0.17 + 0.5) * 0.035;
+      lookGoalY = env * Math.sin(ct * 0.14 + 2.4) * 0.018;
     } else {
       cineWasOn = false;
       cineTimer = 0;
-      cineR += (1 - cineR) * Math.min(1, dt * 2.5);
+      cineR = cineDamp(cineR, 1, 3.2, dt);
     }
-    az += (azT - az) * 0.06; pol += (polT - pol) * 0.06;
+    lookDriftX = cineDamp(lookDriftX, lookGoalX, 2.0, dt);
+    lookDriftY = cineDamp(lookDriftY, lookGoalY, 2.0, dt);
+    var followLambda = cineOn ? 3.6 : 7.5;
+    az = cineDamp(az, azT, followLambda, dt);
+    pol = cineDamp(pol, polT, followLambda, dt);
     var rect = drop.getBoundingClientRect();
     var prog = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height)));
     var r = radiusBase * cineR - prog * 0.35;
-    var sp = Math.sin(pol), sway = REDUCED ? 0 : Math.sin(t * 0.4) * 0.02;
+    /* vertical sway slowed right down and layered: the old
+       single sin(t * 0.4) bob read as a metronome; two slow,
+       unrelated sines at a third of the amplitude feel like a
+       camera breathing, not bouncing */
+    var sp = Math.sin(pol), sway = REDUCED ? 0 : Math.sin(t * 0.21) * 0.007 + Math.sin(t * 0.083 + 1.3) * 0.005;
     camera.position.set(
       target.x + r * sp * Math.sin(az),
       target.y + r * Math.cos(pol) + sway,
@@ -2915,7 +2975,7 @@ window.initStudio = function(){
     camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
     camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
     camera.position.z = Math.max(0.25, Math.min(5.4, camera.position.z));
-    camera.lookAt(target.x, target.y - prog * 0.1, target.z);
+    camera.lookAt(target.x + lookDriftX, target.y - prog * 0.1 + lookDriftY, target.z);
     if(modelReady){
       /* Maschine pads chase; they flare while a beat plays */
       var speed = playing ? 7.5 : 2.1, amp = playing ? 1.15 : 0.5;
