@@ -2678,7 +2678,7 @@ window.initStudio = function(){
     if(f && !glLost) f.style.display = 'none';
     if(!glLost) canvas.style.display = 'block';
     var cue = document.querySelector('.cue-drag');
-    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 ';
+    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261119-4 \u00B7 ';
   }, undefined, function(){ showFallback(); });
 
   /* ---------- camera rig: FIXED HERO + drag-only, rebuilt from scratch ----------
@@ -2697,7 +2697,7 @@ window.initStudio = function(){
        frame, wide, never past him.
      Drag to look around, clamped TIGHT (az ±0.25, so the logo
      stays in frame even at the extremes; pol 1.25–1.52). On
-     release the camera eases back to center over ~1s. The
+     release the camera eases back to center in under a second. The
      camera only moves when he drags it, and it always comes
      home. The only clamps that stay are safety, not movement:
      the dolly floor (r never below 97% of radiusBase — never
@@ -2858,9 +2858,18 @@ window.initStudio = function(){
       if(!dragging) returning = true;
       else if(performance.now() - lastMove > 2000){ dragging = false; returning = true; }
     }
+    /* HARD SNAP (Nov 19 — the ~1.5–3s damp return still reads as
+       "stuck" on a short video): if the camera is off-centre and
+       the pointer has been still for 3s, snap it home instantly
+       instead of gliding. The damp glide above normally brings it
+       home first, but the snap makes "still left after 3s"
+       impossible. */
+    if((azT !== HERO_AZ || polT !== HERO_POL) && !dragging && performance.now() - lastMove > 3000){
+      snapHome();
+    }
     if(returning){
-      azT = camDamp(azT, HERO_AZ, 4.0, dt);
-      polT = camDamp(polT, HERO_POL, 4.0, dt);
+      azT = camDamp(azT, HERO_AZ, 8.0, dt);
+      polT = camDamp(polT, HERO_POL, 8.0, dt);
       if(Math.abs(azT - HERO_AZ) < 0.001 && Math.abs(polT - HERO_POL) < 0.001){
         azT = HERO_AZ; polT = HERO_POL; returning = false;
       }
