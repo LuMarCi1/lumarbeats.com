@@ -2700,7 +2700,7 @@ window.initStudio = function(){
 
   /* ---------- camera rig: idle tour with CUTS + limited drag ----------
      Untouched, the camera tours on its own: it holds a preset
-     view (front wide, desk close-up, both side angles) for a
+     view (front wide, desk wide, both side angles) for a
      few seconds, drifting like a slow dolly — easing in after
      each cut, wandering gently on layered slow sines, pushing
      in a touch over the hold, then easing back to rest before
@@ -2714,11 +2714,17 @@ window.initStudio = function(){
   var target = new THREE.Vector3(0, 1.02, 0.55);
   var az = -0.06, pol = 1.47, radiusBase = 3.35;
   var azT = az, polT = pol, lastTouch = -10;
+  /* Wider framings throughout — no close-ups in the tour (Luther,
+     Nov 19): every preset is a wide shot of the studio. The old
+     desk close-up (r 0.62) put the camera ~2.1m from the desk;
+     all three tighter presets are pulled back to the wide range
+     (r 0.95–0.98, ~3.2–3.3m), so the tour holds the whole room
+     from every angle. Drift, holds, push-in and clamps unchanged. */
   var CINE_VIEWS = [
     { az: -0.06, pol: 1.47, r: 1.0 },  /* front wide — the whole room */
-    { az: 0.16, pol: 1.36, r: 0.62 },  /* desk close-up — Maschine, keys, little Luther */
-    { az: -0.48, pol: 1.42, r: 0.80 }, /* side angle, from the left */
-    { az: 0.45, pol: 1.45, r: 0.85 }    /* side angle, from the right — the PS5 side */
+    { az: 0.16, pol: 1.36, r: 0.95 },  /* desk wide — Maschine, keys, little Luther, pulled back */
+    { az: -0.48, pol: 1.42, r: 0.95 }, /* side angle, from the left — wide */
+    { az: 0.45, pol: 1.45, r: 0.98 }    /* side angle, from the right — the PS5 side, wide */
   ];
   var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
   /* Cinematic tour pacing: longer holds than the old 5.5s cut
