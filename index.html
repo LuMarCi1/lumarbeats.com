@@ -2699,28 +2699,24 @@ window.initStudio = function(){
      no free roam), and after a few seconds hands-off the tour
      resumes with a cut from wherever the camera sits. */
   var target = new THREE.Vector3(0, 1.20, 0.55);
-  var az = 0, pol = 1.47, radiusBase = 4.3;
+  var az = 0, pol = 1.47, radiusBase = 4.8;
   var azT = az, polT = pol, lastTouch = -10;
-  /* Center back — no up-close shots, and the big green LuMar Beats
-     logo on the wood planks is ALWAYS in frame (Luther, Nov 19,
-     1:20 PM). The sign spans y 1.28–2.28 on the back wall (z 0.075,
-     from the studio13 GLB: SignPlank0–5, SignLogo at y 1.78), so
-     the look target is raised to y 1.20 — the camera sits higher
-     and the sign reads in the upper-middle of frame, not up
-     against the top edge. The hero is DEAD CENTER (az 0, no
-     three-quarter angle — the reads-3d -0.28 is gone), the side
-     presets are pulled in to ±0.36 and levelled (pol ~1.45) so
-     the sign stays readable, not foreshortened off at an angle,
-     and the push-in is nearly flat (4% total) so the shot never
-     tightens and crops the sign at the end of a hold. Wider
-     framings throughout — no close-ups in the tour (Luther,
-     Nov 19, 12:44 AM): every preset is a wide shot of the studio.
-     READS-3D (Luther, Nov 19, 12:00 PM — "the cameras are still
-     zoomed to much"): pulled back — radiusBase 3.35 -> 4.3
-     desktop (4.8 tablet, 5.5 narrow), so the hero is a ROOM shot,
-     not a figure shot (~4.3m out). Drift and push-in are gentle
-     (see the loop below) so the movement is SEEN but the frame
-     stays wide. Holds, cuts and drag clamps unchanged. */
+  /* NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM — "it still is
+     zooming in to close it should not go pass lil lumar"): the
+     camera's closest approach stops well behind the figure and
+     it NEVER dollies in. radiusBase is pulled back to 4.8 desktop
+     (the front-wide shot sits near the room's open front, z 5.4
+     clamp), the push-in is GONE (pushIn = 1.0, no forward dolly
+     during a hold — the drift still moves the frame, but the
+     camera never creeps closer), and the dolly has a HARD FLOOR
+     (r is clamped to >= 0.97 * radiusBase in the loop below) so
+     no mechanism — push-in, breathe, scroll — can ever bring it
+     in past the figure. The FOV is widened a touch (46 -> 50
+     desktop) so the room reads wider and the figure sits smaller
+     in frame. The logo rule stands (Luther, 1:20 PM): the big
+     green LuMar Beats logo on the wood planks (y 1.28–2.28) is
+     ALWAYS in frame — target.y 1.20, hero dead center (az 0),
+     side presets ±0.36 levelled (pol ~1.45). No up-close shots. */
   var CINE_VIEWS = [
     { az: 0, pol: 1.47, r: 1.0 },  /* front wide — dead center, the whole room, sign in frame */
     { az: 0.10, pol: 1.44, r: 0.98 },  /* desk wide — Maschine, keys, little Luther, pulled back */
@@ -2828,10 +2824,13 @@ window.initStudio = function(){
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     /* portrait screens get a wider lens and a longer dolly, so the
-       whole desk — Maschine left, keys right — stays in frame */
-    if(camera.aspect < 0.8){ camera.fov = 68; radiusBase = 5.5; }
-    else if(camera.aspect < 1.25){ camera.fov = 56; radiusBase = 4.8; }
-    else { camera.fov = 46; radiusBase = 4.3; }
+       whole desk — Maschine left, keys right — stays in frame.
+       NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM): the dolly
+       is pulled back at every aspect and the lens widened a
+       touch, so the camera never reads as zoomed in. */
+    if(camera.aspect < 0.8){ camera.fov = 68; radiusBase = 6.0; }
+    else if(camera.aspect < 1.25){ camera.fov = 58; radiusBase = 5.3; }
+    else { camera.fov = 50; radiusBase = 4.8; }
     camera.updateProjectionMatrix();
   }
   size();
@@ -2942,13 +2941,13 @@ window.initStudio = function(){
       var env = cineSmooth(ct / 1.6) * (1 - cineSmooth((ct - (CINE_HOLD - 1.2)) / 1.2));
       var azDrift = env * (Math.sin(ct * 0.31) * 0.05 + Math.sin(ct * 0.13 + 1.7) * 0.03);
       var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.02 + Math.cos(ct * 0.11 + 0.4) * 0.012);
-      /* slow push-in across the hold, plus a barely-there
-         breathing of the dolly so the frame never feels frozen.
-         CENTER-BACK (Luther, Nov 19, 1:20 PM — logo always in
-         frame): the push-in is nearly flat (1.04 -> 0.99, only
-         ~4% total) so the shot stays wide and the sign never
-         gets cropped at the end of a hold. */
-      var pushIn = 1.04 - 0.05 * cineSmooth(ct / CINE_HOLD);
+      /* NO push-in — the dolly stays put across the hold, plus a
+         barely-there breathing so the frame never feels frozen.
+         NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM): the old
+         push-in dollied the camera forward every hold, which is
+         the "zooming in" he kept flagging. pushIn is 1.0 now —
+         the camera never creeps closer; only the angle drifts. */
+      var pushIn = 1.0;
       var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.014;
       azT = cineDamp(azT, cv.az + azDrift, 2.4, dt);
       polT = cineDamp(polT, cv.pol + polDrift, 2.4, dt);
@@ -2968,6 +2967,10 @@ window.initStudio = function(){
     var rect = drop.getBoundingClientRect();
     var prog = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height)));
     var r = radiusBase * cineR - prog * 0.35;
+    /* HARD FLOOR — the camera NEVER goes past Lil LuMar (Luther,
+       Nov 19, 1:43 PM). No mechanism — push-in, breathe, scroll —
+       may bring the dolly closer than 97% of radiusBase. */
+    r = Math.max(r, radiusBase * 0.97);
     /* vertical sway slowed right down and layered: the old
        single sin(t * 0.4) bob read as a metronome; two slow,
        unrelated sines at a third of the amplitude feel like a
