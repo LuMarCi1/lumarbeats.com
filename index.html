@@ -22,11 +22,11 @@
 <meta property="og:title" content="LuMar Beats — Beats, Songs &amp; The Studio" />
 <meta property="og:description" content="Hear the music, lease the beats. Songs and the UNCENSORED album play full right on the site. $10 leases, $35 unlimited, $370 exclusive." />
 <meta property="og:url" content="https://lumarbeats.com/" />
-<meta property="og:image" content="https://lumarbeats.com/og-image.jpg?v=7" />
+<meta property="og:image" content="https://lumarbeats.com/og-image.jpg?v=8" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="LuMar Beats — Beats, Songs &amp; The Studio" />
 <meta name="twitter:description" content="Hear the music, lease the beats. Songs and the UNCENSORED album play full right on the site. $10 leases, $35 unlimited, $370 exclusive." />
-<meta name="twitter:image" content="https://lumarbeats.com/og-image.jpg?v=7" />
+<meta name="twitter:image" content="https://lumarbeats.com/og-image.jpg?v=8" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=JetBrains+Mono:wght@500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
@@ -2212,14 +2212,14 @@ document.querySelectorAll('.merch-stage').forEach(function(stage){
 /* ================= 3D: the studio — the real Blender model =================
    The hero is Luther's actual studio, modeled in Blender 4.2 from
    his studio photos and loaded here as a real model
-   (assets/studio10.glb — 223 meshes, PBR materials, textures packed
+   (assets/studio12.glb — 258 meshes, PBR materials, textures packed
    in). It replaces the old procedural three.js rebuild of the room.
    In the model: the BIG green LuMAR BEATS logo on the 6-plank
    wooden sign, three flat monitors (left white LuMAR logo, center
    DAW timeline, right "LUMAR BEATS • LIVE FROM THE STUDIO"),
    studio speakers, a Maschine MK3 with a glowing 4x4 pad grid
    front-left, the MIDI keyboard front and center, desk mat with a
-   green LED edge, the office desk with drawers, a real PS5 (tall
+   green LED edge, the normal gaming desk (no drawers), a real PS5 (tall
    white curved plates, black core, blue glow strip) standing
    vertical on the subwoofer at the right, graffiti tapestry,
    framed art, purple/blue LED wash. NO ring light anywhere —
@@ -2309,7 +2309,7 @@ window.initStudio = function(){
      comfortable */
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__studioSoftGL ? 1 : 1.5));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.64;
+  renderer.toneMappingExposure = 0.76;
   renderer.setClearColor(0x04060c, 1);
   /* lite mode (phones) skips shadow maps and the PMREM environment
      bake below — both are heavy scene-setup costs on a phone GPU,
@@ -2324,7 +2324,7 @@ window.initStudio = function(){
     try{
       var pmrem = new THREE.PMREMGenerator(renderer);
       scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
-      if('environmentIntensity' in scene) scene.environmentIntensity = 0.07;
+      if('environmentIntensity' in scene) scene.environmentIntensity = 0.09;
       pmrem.dispose();
     }catch(e){}
   }
@@ -2337,27 +2337,45 @@ window.initStudio = function(){
      the things that DO light up — the Maschine pads, the
      screens and the wall panels' colored EQ glow — pop
      against the dark. */
-  scene.add(new THREE.AmbientLight(0x232c44, 0.24));
+  scene.add(new THREE.AmbientLight(0x232c44, 0.27));
   var key = new THREE.DirectionalLight(0xcfd8ff, 0.44);
   key.position.set(1.2, 3.4, 3.6); scene.add(key);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.radius = 7;  /* realism: softer shadows */
   key.shadow.camera.left = -3.2; key.shadow.camera.right = 3.2;
   key.shadow.camera.top = 3.2; key.shadow.camera.bottom = -1;
   key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; key.shadow.bias = -0.0004;
   key.target.position.set(0, 0.9, 0.5); scene.add(key.target);
-  var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple);
-  var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue);
-  var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan);
-  var pGreen = new THREE.PointLight(0x14e65e, 1.9, 4.5, 1.9); pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen);
+  var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple); pPurple.castShadow = true; pPurple.shadow.mapSize.set(512, 512); pPurple.shadow.radius = 4; pPurple.shadow.bias = -0.002;
+  var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue); pBlue.castShadow = true; pBlue.shadow.mapSize.set(512, 512); pBlue.shadow.radius = 4; pBlue.shadow.bias = -0.002;
+  var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); pCyan.castShadow = true; pCyan.shadow.mapSize.set(512, 512); pCyan.shadow.radius = 4; pCyan.shadow.bias = -0.002;
+  var pGreen = new THREE.PointLight(0x14e65e, 1.4, 4.5, 1.9); pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = true; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
   /* soft ceiling fill — light only, no fixture: the ring light
      that used to hang here is gone for good */
-  var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil);
+  var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil); pCeil.castShadow = true; pCeil.shadow.mapSize.set(512, 512); pCeil.shadow.radius = 4; pCeil.shadow.bias = -0.002;
   /* the EQ's own light: dark while the room is silent, it takes
      the visualizer's color and throws it back into the room in
      proportion to the level while a track plays, so the wall
      panels below feel like they are lighting the studio */
   var eqGlow = new THREE.PointLight(0x2bff6e, 0, 9, 1.9); eqGlow.position.set(0, 1.7, 1.2); scene.add(eqGlow);
+  /* contact shadows: two invisible catchers (floor + desk top) so
+     the desk, the gear and little Luther sit ON their surfaces
+     instead of floating — the key + point shadows land on them.
+     ShadowMaterial shows only the shadow, nothing else; in lite
+     mode (phones) shadow maps are off, so these are invisible. */
+  (function(){
+    function contactShadow(w, d, x, y, z){
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d),
+        new THREE.ShadowMaterial({ opacity: 0.35, color: 0x000000 }));
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, y, z);
+      m.receiveShadow = true;
+      scene.add(m);
+    }
+    contactShadow(4.4, 3.2, 0, 0.001, 0);    /* floor (Blender z 0.001) */
+    contactShadow(2.2, 1.0, 0, 0.795, 0.55); /* desk top (Blender z 0.795, y -0.55) */
+  })();
 
   /* ---------- EQ panels on the side walls ----------
      Two columns of five light panels mounted on the walls
@@ -2413,7 +2431,7 @@ window.initStudio = function(){
   var bobLvl = 0, bobPhase = 0;
   var woofers = []; /* speaker cones that pump with the bass */
   var modelReady = false;
-  new THREE.GLTFLoader().load('assets/studio10.glb', function(gltf){
+  new THREE.GLTFLoader().load('assets/studio12.glb', function(gltf){
     var model = gltf.scene;
     var seenTint = {};
     var seenSpk = {};
@@ -2462,7 +2480,7 @@ window.initStudio = function(){
         if(sm.name === 'SpeakerDome'){ seenSpk[sm.name] = true; sm.color.setRGB(0.82, 0.86, 0.92); sm.metalness = 0.9; sm.roughness = 0.24; }
         if(sm.name === 'GreyMetal'){ seenSpk[sm.name] = true; sm.color.setRGB(0.5, 0.54, 0.6); sm.metalness = 0.85; sm.roughness = 0.3; }
         if(sm.name === 'BlackPlastic'){ seenSpk[sm.name] = true; sm.color.setRGB(0.035, 0.035, 0.046); sm.roughness = 0.45; }
-        if(sm.name === 'HoodieGreen'){ seenSpk[sm.name] = true; sm.color.setRGB(0.045, 0.32, 0.11); sm.roughness = 0.95; }
+        if(sm.name === 'HoodieGreen'){ seenSpk[sm.name] = true; sm.color.setRGB(0.03, 0.20, 0.07); sm.roughness = 0.95; }
       }
       /* each monitor's power LED actually glows — the little
          green dot every powered studio speaker has */
@@ -2538,80 +2556,43 @@ window.initStudio = function(){
           mat.color.setRGB(dim, dim, dim);
         }
       }
+      /* ---- realism pass: PBR materials, no plastic look ----
+         The studio12 GLB already carries these values from the
+         Blender build; this pass re-asserts them at load (the same
+         table) so the live scene matches the renders even if a
+         future export resets a material. Roughness/metalness on
+         the gear — Maschine, MIDI keys, monitors, PS5, speakers,
+         desk. PS5 clearcoat: the GLB's Principled node has no coat
+         inputs and three.js MeshStandardMaterial cannot render a
+         coat, so the PS5 gets its gloss from roughness 0.20. */
+      var REALISM_MATS = {
+        BlackPlastic: { r: 0.45, m: 0 },
+        HoodieGreen: { r: 0.95, m: 0 },
+        Skin: { r: 0.55, m: 0 },
+        PS5White: { r: 0.20, m: 0 },
+        PS5Black: { r: 0.12, m: 0.15 },
+        KeyWhite: { r: 0.30, m: 0 },
+        DarkWood: { r: 0.60, m: 0 },
+        Carpet: { r: 1.0, m: 0 },
+        GreyMetal: { r: 0.30, m: 0.85 }
+      };
+      if(mat && mat.name && REALISM_MATS[mat.name]){
+        var rm = REALISM_MATS[mat.name];
+        if(mat.roughness !== undefined) mat.roughness = rm.r;
+        if(mat.metalness !== undefined) mat.metalness = rm.m;
+      }
     });
-    /* His shirt goes OVERSIZED — Luther's call: "give lil
-       lumar a shirt a little bigger so it covers all the
-       square ness." Under the shirt his body is a wide, flat,
-       sharp-cornered slab, and the old warp actually SHRANK
-       the hoodie (0.90 across, the back pulled in to 0.84),
-       leaving those square edges showing through — from
-       behind it read as a sign taped to his back. Now the
-       HoodieGreen geometry itself is grown PAST the body on
-       every side so the shirt drapes over the box instead of
-       tracing it: ~16–22% wider (widest at the hem, like a
-       hanging tee), much deeper through the middle so the
-       back and chest BARREL out round instead of ending in
-       flat slab faces (the depth gain fades toward the side
-       edges, so the silhouette curves like cloth on a back,
-       never two sharp corners), and the hem dropped lower
-       so it hangs over the waist edge where the torso box
-       ends. LittleLumar_Body has four materials, so the
-       loader hands it over as a GROUP of meshes — the warp
-       walks the group's children and only touches the
-       HoodieGreen part; skin, jeans and shoes keep their
-       shape underneath, now covered. Normals are rebuilt
-       smooth so the shading rolls like cloth, not cardboard.
-       The hoodie green was already deepened in the material
-       pass above. */
-    if(lilBody){
-      lilBody.traverse(function(part){
-        if(!part.isMesh || !part.geometry || !part.geometry.attributes.position) return;
-        if(!part.material || part.material.name !== 'HoodieGreen') return;
-        var lp = part.geometry.attributes.position;
-        for(var li = 0; li < lp.count; li++){
-          var lx = lp.getX(li), ly = lp.getY(li), lz = lp.getZ(li);
-          var shoulder = Math.max(0, Math.min(1, (ly - 0.55) / 0.48));
-          var hem = Math.max(0, Math.min(1, (0.55 - ly) / 0.62));
-          var nx = lx * (1.16 + 0.06 * hem - 0.02 * shoulder);
-          var across = Math.pow(Math.min(1, Math.abs(lx) / 0.763), 2);
-          var nz = lz * (1.30 - 0.32 * across);
-          var ny = ly - 0.20 * hem * hem;
-          lp.setXYZ(li, nx, ny, nz);
-        }
-        lp.needsUpdate = true;
-        part.geometry.computeVertexNormals();
-      });
-    }
-    /* The 'GET YOU ONE' back print rides the SAME barrel.
-       The v10 model adds LL_ShirtBack as a flat patch in world
-       space, authored against the UNwarped shirt back (z≈1.48)
-       — but the warp above pushes the shirt's back face out to
-       z≈1.49–1.51, which would bury the print ~9mm inside the
-       shirt. Refit every print vertex onto the warped surface:
-       the surface height at the vertex's x follows the warp's
-       own depth law (the back face sits at local z=0.5, pushed
-       by 1.30 − 0.32·across through the body node's scale and
-       offset), the patch keeps its own authored relief, and
-       the whole patch sits a uniform ~3.4mm proud — measured
-       against the warped triangles across the whole print, it
-       reads as a print ON the shirt: never buried, never
-       floating off it. */
-    if(shirtBack){
-      shirtBack.traverse(function(part){
-        if(!part.isMesh || !part.geometry || !part.geometry.attributes.position) return;
-        if(!part.material || part.material.name !== 'ShirtBackMat') return;
-        var sbp = part.geometry.attributes.position;
-        for(var si = 0; si < sbp.count; si++){
-          var sx = sbp.getX(si), sz = sbp.getZ(si);
-          var slx = (sx - 0.02) / 0.3;
-          var sacross = Math.pow(Math.min(1, Math.abs(slx) / 0.763), 2);
-          var ssurf = 1.38 + 0.2 * 0.5 * (1.30 - 0.32 * sacross);
-          sbp.setZ(si, ssurf + (sz - 1.48) - 0.006);
-        }
-        sbp.needsUpdate = true;
-        part.geometry.computeVertexNormals();
-      });
-    }
+    /* The hoodie warp is RETIRED (realism round, Nov 19): the new
+       body in studio12.glb is authored with its final shape — a
+       barrelled torso, rounded shoulders, arms and hands — so there
+       is nothing left to warp at load. The old warp (which grew the
+       HoodieGreen part past the slab body) would distort the new
+       body; it is gone, not just skipped. */
+    /* The 'GET YOU ONE' back print is RETIRED too: LL_ShirtBack in
+       studio12.glb was subdivided and seated onto the new torso's
+       back in Blender (printed side 0.005 proud, slab thickness
+       kept, hood verified 0.006 behind the print) — the old JS
+       refit assumed the warp's depth law and would misplace it. */
     /* The cap sits ON his head, not IN it. In the raw model the
        crown's radius clears the head sphere by only ~7mm at
        scale, so the crown's base ring and the brim root sliced
@@ -3072,7 +3053,7 @@ window.initStudio = function(){
           if(qp.base) qp.mat.color.copy(qp.base).lerp(qp.mat.emissive, 0.06 + qv * 0.14);
         }
         eqGlow.color.setHSL(hueN, 0.8, 0.5);
-        eqGlow.intensity = (window.__eqLevel || 0) * 4.0;
+        eqGlow.intensity = (window.__eqLevel || 0) * 4.2;
       } else {
         for(var tj = 0; tj < tintTargets.length; tj++){
           var tb = tintTargets[tj];
