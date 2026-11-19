@@ -22,11 +22,11 @@
 <meta property="og:title" content="LuMar Beats — Beats, Songs &amp; The Studio" />
 <meta property="og:description" content="Hear the music, lease the beats. Songs and the UNCENSORED album play full right on the site. $10 leases, $35 unlimited, $370 exclusive." />
 <meta property="og:url" content="https://lumarbeats.com/" />
-<meta property="og:image" content="https://lumarbeats.com/og-image.jpg?v=8" />
+<meta property="og:image" content="https://lumarbeats.com/og-image.jpg?v=9" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="LuMar Beats — Beats, Songs &amp; The Studio" />
 <meta name="twitter:description" content="Hear the music, lease the beats. Songs and the UNCENSORED album play full right on the site. $10 leases, $35 unlimited, $370 exclusive." />
-<meta name="twitter:image" content="https://lumarbeats.com/og-image.jpg?v=8" />
+<meta name="twitter:image" content="https://lumarbeats.com/og-image.jpg?v=9" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=JetBrains+Mono:wght@500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
@@ -2212,7 +2212,7 @@ document.querySelectorAll('.merch-stage').forEach(function(stage){
 /* ================= 3D: the studio — the real Blender model =================
    The hero is Luther's actual studio, modeled in Blender 4.2 from
    his studio photos and loaded here as a real model
-   (assets/studio12.glb — 258 meshes, PBR materials, textures packed
+   (assets/studio13.glb — 258 meshes, PBR materials, textures packed
    in). It replaces the old procedural three.js rebuild of the room.
    In the model: the BIG green LuMAR BEATS logo on the 6-plank
    wooden sign, three flat monitors (left white LuMAR logo, center
@@ -2338,7 +2338,7 @@ window.initStudio = function(){
      screens and the wall panels' colored EQ glow — pop
      against the dark. */
   scene.add(new THREE.AmbientLight(0x232c44, 0.27));
-  var key = new THREE.DirectionalLight(0xcfd8ff, 0.44);
+  var key = new THREE.DirectionalLight(0xcfd8ff, 0.65);  /* reads-3d: 0.44 -> 0.65 — stronger key so the figure has a lit side and a shadow side */
   key.position.set(1.2, 3.4, 3.6); scene.add(key);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -2350,7 +2350,7 @@ window.initStudio = function(){
   var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple); pPurple.castShadow = true; pPurple.shadow.mapSize.set(512, 512); pPurple.shadow.radius = 4; pPurple.shadow.bias = -0.002;
   var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue); pBlue.castShadow = true; pBlue.shadow.mapSize.set(512, 512); pBlue.shadow.radius = 4; pBlue.shadow.bias = -0.002;
   var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); pCyan.castShadow = true; pCyan.shadow.mapSize.set(512, 512); pCyan.shadow.radius = 4; pCyan.shadow.bias = -0.002;
-  var pGreen = new THREE.PointLight(0x14e65e, 1.4, 4.5, 1.9); pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = true; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
+  var pGreen = new THREE.PointLight(0x14e65e, 0.8, 4.5, 1.9);  /* reads-3d: 1.4 -> 0.8 — the wash made the figure one green block */ pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = true; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
   /* soft ceiling fill — light only, no fixture: the ring light
      that used to hang here is gone for good */
   var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil); pCeil.castShadow = true; pCeil.shadow.mapSize.set(512, 512); pCeil.shadow.radius = 4; pCeil.shadow.bias = -0.002;
@@ -2431,7 +2431,7 @@ window.initStudio = function(){
   var bobLvl = 0, bobPhase = 0;
   var woofers = []; /* speaker cones that pump with the bass */
   var modelReady = false;
-  new THREE.GLTFLoader().load('assets/studio12.glb', function(gltf){
+  new THREE.GLTFLoader().load('assets/studio13.glb', function(gltf){
     var model = gltf.scene;
     var seenTint = {};
     var seenSpk = {};
@@ -2557,14 +2557,18 @@ window.initStudio = function(){
         }
       }
       /* ---- realism pass: PBR materials, no plastic look ----
-         The studio12 GLB already carries these values from the
+         The studio13 GLB already carries these values from the
          Blender build; this pass re-asserts them at load (the same
          table) so the live scene matches the renders even if a
          future export resets a material. Roughness/metalness on
          the gear — Maschine, MIDI keys, monitors, PS5, speakers,
          desk. PS5 clearcoat: the GLB's Principled node has no coat
          inputs and three.js MeshStandardMaterial cannot render a
-         coat, so the PS5 gets its gloss from roughness 0.20. */
+         coat, so the PS5 gets its gloss from roughness 0.20.
+         READS-3D: Jeans + ShoeWhite joined the table — they are
+         real faces now (studio12 shipped with the whole body as
+         HoodieGreen because the realism build's clear() reset
+         every polygon's material_index to 0; studio13 fixes it). */
       var REALISM_MATS = {
         BlackPlastic: { r: 0.45, m: 0 },
         HoodieGreen: { r: 0.95, m: 0 },
@@ -2574,7 +2578,9 @@ window.initStudio = function(){
         KeyWhite: { r: 0.30, m: 0 },
         DarkWood: { r: 0.60, m: 0 },
         Carpet: { r: 1.0, m: 0 },
-        GreyMetal: { r: 0.30, m: 0.85 }
+        GreyMetal: { r: 0.30, m: 0.85 },
+        Jeans: { r: 0.90, m: 0 },
+        ShoeWhite: { r: 0.50, m: 0 }
       };
       if(mat && mat.name && REALISM_MATS[mat.name]){
         var rm = REALISM_MATS[mat.name];
@@ -2693,19 +2699,23 @@ window.initStudio = function(){
      no free roam), and after a few seconds hands-off the tour
      resumes with a cut from wherever the camera sits. */
   var target = new THREE.Vector3(0, 1.02, 0.55);
-  var az = -0.06, pol = 1.47, radiusBase = 3.35;
+  var az = -0.28, pol = 1.47, radiusBase = 4.3;
   var azT = az, polT = pol, lastTouch = -10;
   /* Wider framings throughout — no close-ups in the tour (Luther,
-     Nov 19): every preset is a wide shot of the studio. The old
-     desk close-up (r 0.62) put the camera ~2.1m from the desk;
-     all three tighter presets are pulled back to the wide range
-     (r 0.95–0.98, ~3.2–3.3m), so the tour holds the whole room
-     from every angle. Drift, holds, push-in and clamps unchanged. */
+     Nov 19, 12:44 AM): every preset is a wide shot of the studio.
+     READS-3D (Luther, Nov 19, 12:00 PM — "the cameras are still
+     zoomed to much"): pulled back FURTHER — radiusBase 3.35 -> 4.3
+     desktop (4.8 tablet, 5.5 narrow), so the hero is a ROOM shot,
+     not a figure shot (~4.3m out), and the hero preset is ANGLED
+     (az -0.28, a three-quarter view, not dead straight-on) so the
+     room reads in perspective. Drift and push-in are stronger too
+     (see the loop below) so the movement is SEEN. Holds, cuts and
+     drag clamps unchanged. */
   var CINE_VIEWS = [
-    { az: -0.06, pol: 1.47, r: 1.0 },  /* front wide — the whole room */
-    { az: 0.16, pol: 1.36, r: 0.95 },  /* desk wide — Maschine, keys, little Luther, pulled back */
-    { az: -0.48, pol: 1.42, r: 0.95 }, /* side angle, from the left — wide */
-    { az: 0.45, pol: 1.45, r: 0.98 }    /* side angle, from the right — the PS5 side, wide */
+    { az: -0.28, pol: 1.47, r: 1.0 },  /* front wide — the whole room, angled three-quarter (reads-3d) */
+    { az: 0.22, pol: 1.36, r: 0.95 },  /* desk wide — Maschine, keys, little Luther, pulled back */
+    { az: -0.52, pol: 1.42, r: 0.95 }, /* side angle, from the left — wide */
+    { az: 0.50, pol: 1.45, r: 0.98 }    /* side angle, from the right — the PS5 side, wide */
   ];
   var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
   /* Cinematic tour pacing: longer holds than the old 5.5s cut
@@ -2809,9 +2819,9 @@ window.initStudio = function(){
     camera.aspect = w / h;
     /* portrait screens get a wider lens and a longer dolly, so the
        whole desk — Maschine left, keys right — stays in frame */
-    if(camera.aspect < 0.8){ camera.fov = 68; radiusBase = 4.6; }
-    else if(camera.aspect < 1.25){ camera.fov = 56; radiusBase = 3.9; }
-    else { camera.fov = 46; radiusBase = 3.35; }
+    if(camera.aspect < 0.8){ camera.fov = 68; radiusBase = 5.5; }
+    else if(camera.aspect < 1.25){ camera.fov = 56; radiusBase = 4.8; }
+    else { camera.fov = 46; radiusBase = 4.3; }
     camera.updateProjectionMatrix();
   }
   size();
@@ -2920,17 +2930,17 @@ window.initStudio = function(){
       var cv = CINE_VIEWS[cineIdx];
       var ct = cineTimer;
       var env = cineSmooth(ct / 1.6) * (1 - cineSmooth((ct - (CINE_HOLD - 1.2)) / 1.2));
-      var azDrift = env * (Math.sin(ct * 0.31) * 0.026 + Math.sin(ct * 0.13 + 1.7) * 0.017);
-      var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.011 + Math.cos(ct * 0.11 + 0.4) * 0.007);
+      var azDrift = env * (Math.sin(ct * 0.31) * 0.05 + Math.sin(ct * 0.13 + 1.7) * 0.03);
+      var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.02 + Math.cos(ct * 0.11 + 0.4) * 0.012);
       /* slow push-in across the hold, plus a barely-there
          breathing of the dolly so the frame never feels frozen */
-      var pushIn = 1.045 - 0.09 * cineSmooth(ct / CINE_HOLD);
-      var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.008;
+      var pushIn = 1.08 - 0.16 * cineSmooth(ct / CINE_HOLD);
+      var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.014;
       azT = cineDamp(azT, cv.az + azDrift, 2.4, dt);
       polT = cineDamp(polT, cv.pol + polDrift, 2.4, dt);
       cineR = cineDamp(cineR, cv.r * pushIn + breathe, 1.6, dt);
-      lookGoalX = env * Math.sin(ct * 0.17 + 0.5) * 0.035;
-      lookGoalY = env * Math.sin(ct * 0.14 + 2.4) * 0.018;
+      lookGoalX = env * Math.sin(ct * 0.17 + 0.5) * 0.06;
+      lookGoalY = env * Math.sin(ct * 0.14 + 2.4) * 0.03;
     } else {
       cineWasOn = false;
       cineTimer = 0;
@@ -3053,7 +3063,7 @@ window.initStudio = function(){
           if(qp.base) qp.mat.color.copy(qp.base).lerp(qp.mat.emissive, 0.06 + qv * 0.14);
         }
         eqGlow.color.setHSL(hueN, 0.8, 0.5);
-        eqGlow.intensity = (window.__eqLevel || 0) * 4.2;
+        eqGlow.intensity = (window.__eqLevel || 0) * 2.4;  /* reads-3d: 4.2 -> 2.4 — the glow blasting down on the figure was the biggest green source */
       } else {
         for(var tj = 0; tj < tintTargets.length; tj++){
           var tb = tintTargets[tj];
