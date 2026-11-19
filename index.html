@@ -2716,12 +2716,22 @@ window.initStudio = function(){
      in frame. The logo rule stands (Luther, 1:20 PM): the big
      green LuMar Beats logo on the wood planks (y 1.28–2.28) is
      ALWAYS in frame — target.y 1.20, hero dead center (az 0),
-     side presets ±0.36 levelled (pol ~1.45). No up-close shots. */
+     side presets ±0.25 levelled (pol 1.46). No up-close shots.
+     STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM — "its like the cam
+     is only on the left side"): three screenshots all parked
+     left — Speed Limit 35, Behringer amp, subwoofer looming,
+     Lil LuMar cut off, logo NOT in frame. The side presets are
+     pulled in further (±0.36 -> ±0.25) so the logo stays in
+     frame even at the side views, the drag clamp is tightened
+     (±0.70 -> ±0.40) so a drag can't swing the camera to an
+     extreme left angle, and the tour now comes BACK TO CENTER
+     on resume (see the loop below) instead of advancing to
+     whatever view was next. */
   var CINE_VIEWS = [
     { az: 0, pol: 1.47, r: 1.0 },  /* front wide — dead center, the whole room, sign in frame */
-    { az: 0.10, pol: 1.44, r: 0.98 },  /* desk wide — Maschine, keys, little Luther, pulled back */
-    { az: -0.36, pol: 1.45, r: 1.0 }, /* side angle, from the left — wide, sign readable */
-    { az: 0.36, pol: 1.46, r: 1.0 }    /* side angle, from the right — the PS5 side, wide, sign readable */
+    { az: 0.08, pol: 1.44, r: 0.98 },  /* desk wide — Maschine, keys, little Luther, pulled back */
+    { az: -0.25, pol: 1.46, r: 1.0 }, /* side angle, from the left — near-frontal, sign in frame */
+    { az: 0.25, pol: 1.46, r: 1.0 }    /* side angle, from the right — the PS5 side, near-frontal, sign in frame */
   ];
   var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
   /* Cinematic tour pacing: longer holds than the old 5.5s cut
@@ -2809,8 +2819,13 @@ window.initStudio = function(){
     if(!dragging) return;
     azT += (e.clientX - lastX) * 0.005;
     polT -= (e.clientY - lastY) * 0.003;
-    azT = Math.max(-0.70, Math.min(0.70, azT));
-    polT = Math.max(1.15, Math.min(1.52, polT));
+    /* STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM): the drag clamp
+       was ±0.70, wide enough to swing the camera to an extreme
+       left angle where the back wall (and logo) leaves the
+       frame. Tightened to ±0.40 so a drag stays near-frontal
+       and the logo stays in frame. */
+    azT = Math.max(-0.40, Math.min(0.40, azT));
+    polT = Math.max(1.25, Math.min(1.52, polT));
     lastX = e.clientX; lastY = e.clientY; lastTouch = perfNow();
   });
   function endDrag(){ dragging = false; lastTouch = perfNow(); }
@@ -2922,13 +2937,19 @@ window.initStudio = function(){
        frame-rate independent damping, and the final az / pol
        follow uses a gentler lambda on tour than on drag, so
        the tour glides and the hand still feels direct. */
-    var cineOn = !REDUCED && !dragging && modelReady && (perfNow() - lastTouch > 4);
+    /* STUCK-ON-LEFT (Luther, Nov 19, 2:09 PM): the tour used to
+       resume 4s after a drag and advance to whatever view was
+       next, so a dragged-left camera could sit on the left
+       side for a long time. Now it resumes after 2s and comes
+       BACK TO CENTER (front view, logo + Lil LuMar) on every
+       resume — the cut only fires when the view actually
+       changes, so page load (already front) stays clean. */
+    var cineOn = !REDUCED && !dragging && modelReady && (perfNow() - lastTouch > 2);
     var lookGoalX = 0, lookGoalY = 0;
     if(cineOn){
       if(!cineWasOn){
         cineWasOn = true; cineTimer = 0;
-        cineIdx = (cineIdx + 1) % CINE_VIEWS.length;
-        doCut();
+        if(cineIdx !== 0){ cineIdx = 0; doCut(); }
       }
       cineTimer += dt;
       if(cineTimer > CINE_HOLD){
