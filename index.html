@@ -2698,24 +2698,34 @@ window.initStudio = function(){
      the drag clamps below are unchanged (no full spin, no zoom,
      no free roam), and after a few seconds hands-off the tour
      resumes with a cut from wherever the camera sits. */
-  var target = new THREE.Vector3(0, 1.02, 0.55);
-  var az = -0.28, pol = 1.47, radiusBase = 4.3;
+  var target = new THREE.Vector3(0, 1.20, 0.55);
+  var az = 0, pol = 1.47, radiusBase = 4.3;
   var azT = az, polT = pol, lastTouch = -10;
-  /* Wider framings throughout — no close-ups in the tour (Luther,
+  /* Center back — no up-close shots, and the big green LuMar Beats
+     logo on the wood planks is ALWAYS in frame (Luther, Nov 19,
+     1:20 PM). The sign spans y 1.28–2.28 on the back wall (z 0.075,
+     from the studio13 GLB: SignPlank0–5, SignLogo at y 1.78), so
+     the look target is raised to y 1.20 — the camera sits higher
+     and the sign reads in the upper-middle of frame, not up
+     against the top edge. The hero is DEAD CENTER (az 0, no
+     three-quarter angle — the reads-3d -0.28 is gone), the side
+     presets are pulled in to ±0.36 and levelled (pol ~1.45) so
+     the sign stays readable, not foreshortened off at an angle,
+     and the push-in is nearly flat (4% total) so the shot never
+     tightens and crops the sign at the end of a hold. Wider
+     framings throughout — no close-ups in the tour (Luther,
      Nov 19, 12:44 AM): every preset is a wide shot of the studio.
      READS-3D (Luther, Nov 19, 12:00 PM — "the cameras are still
-     zoomed to much"): pulled back FURTHER — radiusBase 3.35 -> 4.3
+     zoomed to much"): pulled back — radiusBase 3.35 -> 4.3
      desktop (4.8 tablet, 5.5 narrow), so the hero is a ROOM shot,
-     not a figure shot (~4.3m out), and the hero preset is ANGLED
-     (az -0.28, a three-quarter view, not dead straight-on) so the
-     room reads in perspective. Drift and push-in are stronger too
-     (see the loop below) so the movement is SEEN. Holds, cuts and
-     drag clamps unchanged. */
+     not a figure shot (~4.3m out). Drift and push-in are gentle
+     (see the loop below) so the movement is SEEN but the frame
+     stays wide. Holds, cuts and drag clamps unchanged. */
   var CINE_VIEWS = [
-    { az: -0.28, pol: 1.47, r: 1.0 },  /* front wide — the whole room, angled three-quarter (reads-3d) */
-    { az: 0.22, pol: 1.36, r: 0.95 },  /* desk wide — Maschine, keys, little Luther, pulled back */
-    { az: -0.52, pol: 1.42, r: 0.95 }, /* side angle, from the left — wide */
-    { az: 0.50, pol: 1.45, r: 0.98 }    /* side angle, from the right — the PS5 side, wide */
+    { az: 0, pol: 1.47, r: 1.0 },  /* front wide — dead center, the whole room, sign in frame */
+    { az: 0.10, pol: 1.44, r: 0.98 },  /* desk wide — Maschine, keys, little Luther, pulled back */
+    { az: -0.36, pol: 1.45, r: 1.0 }, /* side angle, from the left — wide, sign readable */
+    { az: 0.36, pol: 1.46, r: 1.0 }    /* side angle, from the right — the PS5 side, wide, sign readable */
   ];
   var cineIdx = 0, cineTimer = 0, cineR = 1, cineWasOn = false;
   /* Cinematic tour pacing: longer holds than the old 5.5s cut
@@ -2933,8 +2943,12 @@ window.initStudio = function(){
       var azDrift = env * (Math.sin(ct * 0.31) * 0.05 + Math.sin(ct * 0.13 + 1.7) * 0.03);
       var polDrift = env * (Math.sin(ct * 0.23 + 0.9) * 0.02 + Math.cos(ct * 0.11 + 0.4) * 0.012);
       /* slow push-in across the hold, plus a barely-there
-         breathing of the dolly so the frame never feels frozen */
-      var pushIn = 1.08 - 0.16 * cineSmooth(ct / CINE_HOLD);
+         breathing of the dolly so the frame never feels frozen.
+         CENTER-BACK (Luther, Nov 19, 1:20 PM — logo always in
+         frame): the push-in is nearly flat (1.04 -> 0.99, only
+         ~4% total) so the shot stays wide and the sign never
+         gets cropped at the end of a hold. */
+      var pushIn = 1.04 - 0.05 * cineSmooth(ct / CINE_HOLD);
       var breathe = env * Math.sin(ct * 0.19 + 2.1) * 0.014;
       azT = cineDamp(azT, cv.az + azDrift, 2.4, dt);
       polT = cineDamp(polT, cv.pol + polDrift, 2.4, dt);
