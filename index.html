@@ -2706,7 +2706,7 @@ window.initStudio = function(){
      PHASE 2 (later, only after Luther confirms this phase is
      right): the auto tour comes back. It is NOT in this build. */
   var HERO_AZ = 0, HERO_POL = 1.47;
-  var DRAG_AZ = 0.25; /* tight drag clamp — the logo stays in frame even at the extremes */
+  var DRAG_AZ = 0.35; /* drag clamp — wider look-around (Luther, Nov 20: "real tight to move"); headless sweeps show the logo stays in frame with margin and Lil LuMar stays visible at ±0.35 */
   var target = new THREE.Vector3(0, 1.20, 0.55);
   var az = HERO_AZ, pol = HERO_POL, radiusBase = 5.8;
   var azT = az, polT = pol;
@@ -2740,10 +2740,14 @@ window.initStudio = function(){
     if(e.buttons === 0){ endDrag(); return; }
     azT += (e.clientX - lastX) * 0.005;
     polT -= (e.clientY - lastY) * 0.003;
-    /* TIGHT drag clamp (Luther, Nov 19, 4:11 PM — rebuild): the
-       old ±0.40 clamp still let a drag swing far enough left
+    /* Drag clamp (Luther, Nov 19, 4:11 PM — rebuild; widened Nov 20):
+       the old ±0.40 clamp still let a drag swing far enough left
        that the logo left the frame and the camera stuck there.
-       ±0.25 keeps the logo in frame even at the extremes. */
+       ±0.25 kept the logo in frame but felt "real tight to move"
+       (Luther, Nov 20, 3:29 PM). ±0.35 (±20 deg) is the widened stop:
+       headless sweeps show the logo stays in frame with margin and
+       Lil LuMar stays visible; at ±0.40 the x-clamp engages and the
+       view is nearly identical to 0.35. */
     azT = Math.max(-DRAG_AZ, Math.min(DRAG_AZ, azT));
     polT = Math.max(1.25, Math.min(1.52, polT));
     lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
