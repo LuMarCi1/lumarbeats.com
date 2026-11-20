@@ -2678,7 +2678,7 @@ window.initStudio = function(){
     if(f && !glLost) f.style.display = 'none';
     if(!glLost) canvas.style.display = 'block';
     var cue = document.querySelector('.cue-drag');
-    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261120-1 \u00B7 ';
+    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261120-2 \u00B7 ';
   }, undefined, function(){ showFallback(); });
 
   /* ---------- camera rig: FIXED HERO + drag-only, rebuilt from scratch ----------
@@ -2726,6 +2726,18 @@ window.initStudio = function(){
   });
   canvas.addEventListener('pointermove', function(e){
     if(!dragging) return;
+    /* MISSED-RELEASE CURE (Nov 20 — "cam still stuck on the left"):
+       the old code never checked whether a button was still down,
+       so if the release event was ever missed, `dragging` stayed
+       true forever and every later HOVER move over the canvas was
+       treated as a drag: the camera followed the mouse, parked
+       where the mouse stopped, and `lastMove` stayed fresh so the
+       2s/3s safety nets never fired. A move with no button down
+       is not a drag — end it here and let the camera come home.
+       During a real drag buttons is 1 (mouse / touch / pen); if a
+       browser ever reports undefined, `undefined === 0` is false
+       and behaviour is unchanged. */
+    if(e.buttons === 0){ endDrag(); return; }
     azT += (e.clientX - lastX) * 0.005;
     polT -= (e.clientY - lastY) * 0.003;
     /* TIGHT drag clamp (Luther, Nov 19, 4:11 PM — rebuild): the
@@ -2756,6 +2768,11 @@ window.initStudio = function(){
   canvas.addEventListener('pointerleave', endDrag);
   canvas.addEventListener('lostpointercapture', endDrag);
   window.addEventListener('blur', endDrag);
+  /* Nov 20: a release landing anywhere on the page ends the drag
+     too — covers capture failing and the release landing on
+     another element instead of the canvas. */
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
 
   function size(){
     var w = canvas.clientWidth || drop.clientWidth || 300;
