@@ -2678,7 +2678,7 @@ window.initStudio = function(){
     if(f && !glLost) f.style.display = 'none';
     if(!glLost) canvas.style.display = 'block';
     var cue = document.querySelector('.cue-drag');
-    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261119-4 \u00B7 ';
+    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261120-1 \u00B7 ';
   }, undefined, function(){ showFallback(); });
 
   /* ---------- camera rig: FIXED HERO + drag-only, rebuilt from scratch ----------
@@ -2691,7 +2691,7 @@ window.initStudio = function(){
      mechanism is GONE — no auto-tour, no cuts, no drift, no
      breathe, no push-in, no resume, no sway, no scroll dolly.
      The camera has ONE home and it never moves on its own:
-       HERO — az 0, pol 1.47, radiusBase 4.8, fov 50, target
+       HERO — az 0, pol 1.47, radiusBase 5.8, fov 58, target
        y 1.20: dead center, the big green LuMar Beats logo on
        the wood planks (y 1.28–2.28) and Lil LuMar both in
        frame, wide, never past him.
@@ -2708,7 +2708,7 @@ window.initStudio = function(){
   var HERO_AZ = 0, HERO_POL = 1.47;
   var DRAG_AZ = 0.25; /* tight drag clamp — the logo stays in frame even at the extremes */
   var target = new THREE.Vector3(0, 1.20, 0.55);
-  var az = HERO_AZ, pol = HERO_POL, radiusBase = 4.8;
+  var az = HERO_AZ, pol = HERO_POL, radiusBase = 5.8;
   var azT = az, polT = pol;
   /* Frame-rate independent damping: 1 - exp(-lambda * dt) gives
      the same ease-out at 30, 60 or 120Hz. */
@@ -2767,9 +2767,9 @@ window.initStudio = function(){
        NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM): the dolly
        is pulled back at every aspect and the lens widened a
        touch, so the camera never reads as zoomed in. */
-    if(camera.aspect < 0.8){ camera.fov = 68; radiusBase = 6.0; }
-    else if(camera.aspect < 1.25){ camera.fov = 58; radiusBase = 5.3; }
-    else { camera.fov = 50; radiusBase = 4.8; }
+    if(camera.aspect < 0.8){ camera.fov = 72; radiusBase = 7.0; }
+    else if(camera.aspect < 1.25){ camera.fov = 64; radiusBase = 6.6; }
+    else { camera.fov = 58; radiusBase = 5.8; }
     camera.updateProjectionMatrix();
   }
   size();
@@ -2892,10 +2892,10 @@ window.initStudio = function(){
        the safe box every frame (drag, desktop, mobile). Room
        bounds in Three.js coords: side walls x +/-2.3, back wall z 0,
        ceiling y 2.6, floor y 0; the front is open, so z may run out
-       to 5.4 (the front wide shot sits out there). */
+       to 8.0 (the front wide shot sits out there). */
     camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
     camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
-    camera.position.z = Math.max(0.25, Math.min(5.4, camera.position.z));
+    camera.position.z = Math.max(0.25, Math.min(8.0, camera.position.z));
     camera.lookAt(target.x, target.y, target.z);
     if(modelReady){
       /* Maschine pads chase; they flare while a beat plays */
