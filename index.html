@@ -2724,8 +2724,108 @@ window.initStudio = function(){
     az = azT = HERO_AZ; pol = polT = HERO_POL;
     returning = false;
   }
+  /* Place the camera from the current az/pol/target and look at
+     the sign. The loop calls this every frame after damping;
+     the independent return watchdog calls it directly when it
+     forces the camera home outside the loop. */
+  function placeCameraHome(){
+    var r = radiusBase;
+    /* HARD FLOOR — the camera NEVER goes past Lil LuMar (Luther,
+       Nov 19, 1:43 PM). No mechanism may bring the dolly closer
+       than 97% of radiusBase. With a fixed dolly this is a
+       safety net, kept so the rule survives any future edit. */
+    r = Math.max(r, radiusBase * 0.97);
+    var sp = Math.sin(pol);
+    camera.position.set(
+      target.x + r * sp * Math.sin(az),
+      target.y + r * Math.cos(pol),
+      target.z + r * sp * Math.cos(az)
+    );
+    /* v4: the camera can NEVER leave the room - clamp its position into
+       the safe box every frame (drag, desktop, mobile). Room
+       bounds in Three.js coords: side walls x +/-2.3, back wall z 0,
+       ceiling y 2.6, floor y 0; the front is open, so z may run out
+       to 8.0 (the front wide shot sits out there). */
+    camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
+    camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
+    camera.position.z = Math.max(0.25, Math.min(8.0, camera.position.z));
+    camera.lookAt(target.x, target.y, target.z);
+  }
+  /* ---------- INDEPENDENT RETURN WATCHDOG (Nov 21 — return fix,
+     build 20261121-3. Luther, 5:10 PM: "no more tests, ship it
+     working." The hands-off test proved the return never runs on
+     his machine — the loop's own safety nets never fire, so the
+     failure is either the inView gate (the loop early-returns
+     every frame) or an exception before the camera update.
+     This watchdog depends on NEITHER: it runs on setTimeout /
+     setInterval, outside rAF and outside the loop entirely.
+     On every drag end it samples az/pol twice; if the camera is
+     genuinely stuck — off centre and not moving toward home —
+     it forces az/azT home, places the camera and renders the
+     frame itself, retrying until home. If the normal damped
+     return is already working, the samples show az/pol moving
+     home and the watchdog does nothing. It never fights a
+     healthy return. */
+  var wdT1 = 0, wdT2 = 0, wdIv = 0, wdAz1 = 0, wdPol1 = 0, wdFired = false;
+  function clearWatchdog(){
+    if(wdT1){ clearTimeout(wdT1); wdT1 = 0; }
+    if(wdT2){ clearTimeout(wdT2); wdT2 = 0; }
+    if(wdIv){ clearInterval(wdIv); wdIv = 0; }
+  }
+  function watchdogRender(){
+    /* Force home + place + render, guarded: if the render
+       itself throws (lost context, bad state), swallow it —
+       the interval retries, and the loop's own blank-frame
+       watchdog / still fallback still covers a truly dead GL. */
+    try{
+      snapHome();
+      placeCameraHome();
+      renderer.render(scene, camera);
+      return true;
+    }catch(e){ return false; }
+  }
+  function armReturnWatchdog(){
+    clearWatchdog();
+    wdFired = false;
+    /* Sample 1 at ~1s: the normal damp (lambda 8) brings az
+       home in ~0.5-1s, so a healthy return is nearly home
+       by now. */
+    wdT1 = setTimeout(function(){
+      wdT1 = 0;
+      if(dragging) return; /* grabbed it again — stand down */
+      wdAz1 = az; wdPol1 = pol;
+      /* Sample 2 at ~1.5s: the camera itself (az/pol) must be
+         gliding toward home for the return to count as working.
+         azT gliding home in memory alone does NOT count — if
+         the target homes while the camera never moves, the
+         frame is still stuck. And "home" means all four: the
+         camera AND its target, az AND pol — az can sit at 0
+         while azT is still off centre if the loop never ran
+         the camera math at all. */
+      wdT2 = setTimeout(function(){
+        wdT2 = 0;
+        if(dragging) return;
+        if(Math.abs(az) <= 0.02 && Math.abs(azT) <= 0.02
+          && Math.abs(pol - HERO_POL) <= 0.02 && Math.abs(polT - HERO_POL) <= 0.02) return; /* already home */
+        if(Math.abs(az) < Math.abs(wdAz1) - 0.005
+          || Math.abs(pol - HERO_POL) < Math.abs(wdPol1 - HERO_POL) - 0.005) return; /* camera gliding home — healthy */
+        /* STUCK: force home and render directly, retrying on
+           a short interval until home AND a render succeeds. */
+        wdFired = true;
+        var tries = 0;
+        wdIv = setInterval(function(){
+          tries++;
+          if(dragging){ clearWatchdog(); return; }
+          if(watchdogRender() && Math.abs(az) <= 0.001){ clearWatchdog(); return; }
+          if(tries >= 20){ clearWatchdog(); }
+        }, 150);
+        watchdogRender(); /* first force-render at once, don't wait 150ms */
+      }, 500);
+    }, 1000);
+  }
   canvas.addEventListener('pointerdown', function(e){
     dragging = true; returning = false; lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
+    clearWatchdog();
     try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
   });
   canvas.addEventListener('pointermove', function(e){
@@ -2762,6 +2862,7 @@ window.initStudio = function(){
        centre, ease back over ~1s; if it is already home, this
        is a no-op. */
     if(azT !== HERO_AZ || polT !== HERO_POL) returning = true;
+    armReturnWatchdog();
   }
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
@@ -2861,9 +2962,12 @@ window.initStudio = function(){
      and az/azT glide home while the SCREEN stays left, the camera
      math runs but the frame never renders — an exception between
      the camera math and renderer.render, or a lost GL context.
-     The try/catch below changes NO behaviour: it only records the
-     error that already killed that frame's render. Diagnostic
-     only — no return fix ships in this build. */
+     Nov 21, build 20261121-3: the loop body is now split into
+     per-section try/catches (camera / playing-path / render), so
+     an exception in one part can't kill the others — and the
+     independent return watchdog (setTimeout, outside the loop)
+     brings the camera home even if the loop never runs. The
+     readout stays as infrastructure. */
   var camDbgEl = document.getElementById('camdbg');
   var camDbgT0 = performance.now();
   var loopErr = '';
@@ -2933,30 +3037,16 @@ window.initStudio = function(){
         azT = HERO_AZ; polT = HERO_POL; returning = false;
       }
     }
-    az = camDamp(az, azT, 7.5, dt);
-    pol = camDamp(pol, polT, 7.5, dt);
-    var r = radiusBase;
-    /* HARD FLOOR — the camera NEVER goes past Lil LuMar (Luther,
-       Nov 19, 1:43 PM). No mechanism may bring the dolly closer
-       than 97% of radiusBase. With a fixed dolly this is a
-       safety net, kept so the rule survives any future edit. */
-    r = Math.max(r, radiusBase * 0.97);
-    var sp = Math.sin(pol);
-    camera.position.set(
-      target.x + r * sp * Math.sin(az),
-      target.y + r * Math.cos(pol),
-      target.z + r * sp * Math.cos(az)
-    );
-    /* v4: the camera can NEVER leave the room - clamp its position into
-       the safe box every frame (drag, desktop, mobile). Room
-       bounds in Three.js coords: side walls x +/-2.3, back wall z 0,
-       ceiling y 2.6, floor y 0; the front is open, so z may run out
-       to 8.0 (the front wide shot sits out there). */
-    camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
-    camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
-    camera.position.z = Math.max(0.25, Math.min(8.0, camera.position.z));
-    camera.lookAt(target.x, target.y, target.z);
+    /* CAMERA UPDATE — its own try/catch (Nov 21, return fix):
+       an exception in the playing-path below must never take
+       the camera update down with it, and vice versa. */
+    try{
+      az = camDamp(az, azT, 7.5, dt);
+      pol = camDamp(pol, polT, 7.5, dt);
+      placeCameraHome();
+    }catch(e){ loopErr = 'cam:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
     if(modelReady){
+      try{
       /* Maschine pads chase; they flare while a beat plays */
       var speed = playing ? 7.5 : 2.1, amp = playing ? 1.15 : 0.5;
       for(var pi = 0; pi < padMats.length; pi++){
@@ -3059,8 +3149,11 @@ window.initStudio = function(){
         }
         eqGlow.intensity = 0;
       }
+      }catch(e){ loopErr = 'play:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
     }
-    renderer.render(scene, camera);
+    try{
+      renderer.render(scene, camera);
+    }catch(e){ loopErr = 'render:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
     /* blank-frame watchdog: sample the frame just rendered
        (same task, so readPixels sees it before compositing) */
     if(modelReady && !glLost){
