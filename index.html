@@ -514,7 +514,7 @@
         <a class="btn btn-green" href="#find">Find your beat</a>
         <a class="btn btn-ghost" href="#store">Shop beats — from $10</a>
       </div>
-      <div class="scroll-cue"><span class="cue-drag">Drag to look around the studio &middot; </span>scroll — the journey starts</div>
+      <div class="scroll-cue"><span class="cue-drag">Drag to look around the studio &middot; </span>scroll — the journey starts<span id="camdbg" style="display:block;margin-top:6px;font-family:monospace;font-size:.68rem;letter-spacing:.04em;text-transform:none;color:#7fb069"></span></div>
     </div>
   </div>
 </section>
@@ -2840,8 +2840,42 @@ window.initStudio = function(){
   }
   var last = performance.now();
   var slowFrames = 0, prSteps = 0;
+  /* ---------- CAM DEBUG READOUT (Nov 21 — hands-off test proved the
+     return never runs on Luther's machine: camera stays left 30s+
+     after a hands-off release, loop safety nets never fire).
+     A tiny live readout next to the cue, updated at the TOP of
+     every loop frame (before the inView early-return), so one
+     screenshot settles it:
+       t   = seconds since load (advances = the loop is scheduling)
+       drg = dragging?  ret = returning?  iv = inView?
+       az / azT = camera azimuth now / target (homing in memory?)
+       play = a beat is playing?  hue = analyser hue (null = no EQ data)
+       err = last loop exception (\u2014 = none)  gl = context lost?
+       mdl = model loaded?
+     If t freezes, the loop is dead. If t advances with iv=0, the
+     IntersectionObserver gate is the killer. If t advances, iv=1
+     and az/azT glide home while the SCREEN stays left, the camera
+     math runs but the frame never renders — an exception between
+     the camera math and renderer.render, or a lost GL context.
+     The try/catch below changes NO behaviour: it only records the
+     error that already killed that frame's render. Diagnostic
+     only — no return fix ships in this build. */
+  var camDbgEl = document.getElementById('camdbg');
+  var camDbgT0 = performance.now();
+  var loopErr = '';
   (function loop(now){
     requestAnimationFrame(loop);
+    if(camDbgEl){
+      try{
+        camDbgEl.textContent = 't=' + ((performance.now() - camDbgT0) / 1000).toFixed(1)
+          + ' drg=' + (dragging ? 1 : 0) + ' ret=' + (returning ? 1 : 0) + ' iv=' + (inView ? 1 : 0)
+          + ' az=' + az.toFixed(2) + ' azT=' + azT.toFixed(2)
+          + ' play=' + (document.body.classList.contains('beat-playing') ? 1 : 0)
+          + ' hue=' + (window.__eqHue == null ? 'null' : String(window.__eqHue).slice(0, 6))
+          + ' err=' + (loopErr || '\u2014') + ' gl=' + (glLost ? 1 : 0) + ' mdl=' + (modelReady ? 1 : 0);
+      }catch(e){}
+    }
+    try{
     if(!inView){ last = now; return; }
     var dt = Math.min(0.05, (now - last) / 1000); last = now;
     /* adaptive resolution: if frames stay slow (a weak GPU, or a
@@ -3037,6 +3071,7 @@ window.initStudio = function(){
         }
       }
     }
+    }catch(e){ loopErr = (e && e.message) ? String(e.message).slice(0, 60) : String(e).slice(0, 60); }
   })(performance.now());
 };
 </script>
