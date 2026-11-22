@@ -2300,10 +2300,12 @@ window.initStudio = function(){
     if(modelReady) showLive();
   });
   /* every screen runs the live studio at a capped pixel ratio —
-     the scene is mostly flat-shaded geometry, so 1.5x stays
-     crisp while keeping weak GPUs (and software renderers)
-     comfortable */
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__studioSoftGL ? 1 : 1.5));
+     Nov 22: 1.5x down to 1.25x. A Retina Mac at dpr 2 x 1.5x was a
+     2160x1062 backing store + MSAA on a 2014 GPU, on top of the
+     shadow cost that was already making frames take seconds.
+     1.25x stays crisp while keeping weak GPUs (and software
+     renderers) comfortable */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__studioSoftGL ? 1 : 1.25));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.76;
   renderer.setClearColor(0x04060c, 1);
@@ -2337,19 +2339,30 @@ window.initStudio = function(){
   var key = new THREE.DirectionalLight(0xcfd8ff, 0.65);  /* reads-3d: 0.44 -> 0.65 — stronger key so the figure has a lit side and a shadow side */
   key.position.set(1.2, 3.4, 3.6); scene.add(key);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024);
   key.shadow.radius = 7;  /* realism: softer shadows */
   key.shadow.camera.left = -3.2; key.shadow.camera.right = 3.2;
   key.shadow.camera.top = 3.2; key.shadow.camera.bottom = -1;
   key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; key.shadow.bias = -0.0004;
   key.target.position.set(0, 0.9, 0.5); scene.add(key.target);
-  var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple); pPurple.castShadow = true; pPurple.shadow.mapSize.set(512, 512); pPurple.shadow.radius = 4; pPurple.shadow.bias = -0.002;
-  var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue); pBlue.castShadow = true; pBlue.shadow.mapSize.set(512, 512); pBlue.shadow.radius = 4; pBlue.shadow.bias = -0.002;
-  var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); pCyan.castShadow = true; pCyan.shadow.mapSize.set(512, 512); pCyan.shadow.radius = 4; pCyan.shadow.bias = -0.002;
-  var pGreen = new THREE.PointLight(0x14e65e, 0.8, 4.5, 1.9);  /* reads-3d: 1.4 -> 0.8 — the wash made the figure one green block */ pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = true; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
+  /* Nov 22, render fix: the five point lights used to cast shadows —
+     a point light renders the scene SIX times per frame (one per cube
+     face), so five of them + the key light = 31 shadow passes, each
+     re-drawing all 258 meshes (~8,000 draw calls/frame). On a 2014
+     MacBook GPU that made every frame take ~3s: the readout (DOM)
+     moved in real time while the canvas presented frames seconds
+     late, so the camera looked stuck left after it had already
+     returned home in memory. Point-light shadows are OFF now — the
+     washes are uniform, which is what a wash should be — and the
+     key light alone carries the shadows (figure, desk, gear onto
+     the contact catchers). */
+  var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple); pPurple.castShadow = false; pPurple.shadow.mapSize.set(512, 512); pPurple.shadow.radius = 4; pPurple.shadow.bias = -0.002;
+  var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue); pBlue.castShadow = false; pBlue.shadow.mapSize.set(512, 512); pBlue.shadow.radius = 4; pBlue.shadow.bias = -0.002;
+  var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); pCyan.castShadow = false; pCyan.shadow.mapSize.set(512, 512); pCyan.shadow.radius = 4; pCyan.shadow.bias = -0.002;
+  var pGreen = new THREE.PointLight(0x14e65e, 0.8, 4.5, 1.9);  /* reads-3d: 1.4 -> 0.8 — the wash made the figure one green block */ pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = false; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
   /* soft ceiling fill — light only, no fixture: the ring light
      that used to hang here is gone for good */
-  var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil); pCeil.castShadow = true; pCeil.shadow.mapSize.set(512, 512); pCeil.shadow.radius = 4; pCeil.shadow.bias = -0.002;
+  var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil); pCeil.castShadow = false; pCeil.shadow.mapSize.set(512, 512); pCeil.shadow.radius = 4; pCeil.shadow.bias = -0.002;
   /* the EQ's own light: dark while the room is silent, it takes
      the visualizer's color and throws it back into the room in
      proportion to the level while a track plays, so the wall
@@ -2989,9 +3002,11 @@ window.initStudio = function(){
     /* adaptive resolution: if frames stay slow (a weak GPU, or a
        software renderer the init check could not identify), step
        the pixel ratio down so the room keeps moving instead of
-       the page seizing up — hardware that keeps up never steps */
+       the page seizing up — hardware that keeps up never steps.
+       Nov 22: 30 slow frames, not 90 — at multi-second frames,
+       90 was minutes before the first step-down. */
     if(dt > 0.04){ slowFrames++; } else if(slowFrames > 0){ slowFrames--; }
-    if(slowFrames >= 90 && prSteps < 3){
+    if(slowFrames >= 30 && prSteps < 3){
       slowFrames = 0; prSteps++;
       renderer.setPixelRatio(Math.max(0.7, renderer.getPixelRatio() - 0.25));
       size();
