@@ -375,13 +375,15 @@
   .merch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   .merch-grid>*{min-width:0}
   .merch{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
-  .merch-stage{aspect-ratio:1/1;perspective:800px;overflow:hidden;position:relative;cursor:grab;touch-action:pan-y}
-  .merch-stage:active{cursor:grabbing}
-  .merch-spin{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
-  .merch-spin img{width:100%;height:100%;object-fit:cover;pointer-events:none}
-  .merch-spin.pad img{object-fit:contain;padding:14%}
+  .merch-stage{aspect-ratio:1/1;overflow:hidden;position:relative}
+  .merch-view{position:absolute;inset:0}
+  .merch-view img{width:100%;height:100%;object-fit:cover;display:block}
+  .merch-view img[hidden]{display:none}
+  .merch-view.pad img{object-fit:contain;padding:14%}
   .ph-dark{background:#0b0f16}.ph-light{background:#e9ede7}
-  .spin-hint{position:absolute;right:10px;bottom:10px;z-index:2;background:rgba(8,14,9,.72);color:#dff5e2;border:1px solid rgba(140,255,170,.3);border-radius:999px;padding:5px 10px;font-size:.7rem;font-weight:700;letter-spacing:.04em;pointer-events:none}
+  .merch-toggle{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:2;display:flex;gap:6px;background:rgba(8,14,9,.72);border:1px solid rgba(140,255,170,.3);border-radius:999px;padding:4px}
+  .merch-toggle button{appearance:none;border:0;background:transparent;color:#dff5e2;font:700 .78rem/1 "Archivo",system-ui,sans-serif;letter-spacing:.04em;padding:7px 14px;border-radius:999px;cursor:pointer}
+  .merch-toggle button.on{background:#39FF14;color:#06130a}
   .merch .body{padding:15px 16px 17px;display:flex;flex-direction:column;gap:6px;flex:1}
   .merch h3{margin:0;font-size:1.02rem}
   .merch p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
@@ -991,47 +993,47 @@
   <!-- ============ 07 · MERCH STORE ============ -->
   <section class="chapter" id="shop">
     <div class="ch-head"><span class="ch-num">07</span><div><h2>Merch Store</h2></div></div>
-    <p class="ch-sub">The merch lines are <b>LuMar Beats</b>, <b>Ci1</b> — “See I Won” — and <b>Be That</b>: whatever you wanna be, just be that. Drag any piece to spin it around, then grab it in the TikTok Shop. Printed to order, so nothing ships until you order it.</p>
+    <p class="ch-sub">The merch lines are <b>LuMar Beats</b>, <b>Ci1</b> — “See I Won” — and <b>Be That</b>: whatever you wanna be, just be that. Tap Front / Back on a piece to see both sides, then grab it in the TikTok Shop. Printed to order, so nothing ships until you order it.</p>
 
     <div class="merch-grid">
-      <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-logo-tee.jpg" alt="LuMar Beats Logo Tee — black tee with the electric green LuMar Beats graffiti logo on the chest" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+      <article class="merch" data-flip>
+        <div class="merch-stage"><div class="merch-view"><img class="mv-front" src="assets/merch-logo-tee.jpg" alt="LuMar Beats Logo Tee — black tee with the electric green LuMar Beats graffiti logo on the chest" draggable="false" loading="lazy" decoding="async"><img class="mv-back" src="assets/merch-logo-tee-back.jpg" alt="LuMar Beats Logo Tee — back of the black tee with “GET YOU ONE” in white block letters" draggable="false" loading="lazy" decoding="async" hidden></div><div class="merch-toggle" role="group" aria-label="View front or back"><button type="button" class="on" data-view="front">Front</button><button type="button" data-view="back">Back</button></div></div>
         <div class="body"><h3>LuMar Beats Logo Tee</h3><p>Electric Green logo on Black. The official LuMar Beats logo big across the chest, “GET YOU ONE” on the back. Comfort Colors 1717 heavyweight tee, sizes S–2XL.</p>
           <div class="row"><span class="price">$36.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
 </article>
       <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-ci1-tee.jpg" alt="Ci1 Classic Tee — black tee with the big white circular Ci1 badge on the chest and SEE I WON underneath" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+        <div class="merch-stage"><div class="merch-view"><img src="assets/merch-ci1-tee.jpg" alt="Ci1 Classic Tee — black tee with the big white circular Ci1 badge on the chest and SEE I WON underneath" draggable="false" loading="lazy" decoding="async"></div></div>
         <div class="body"><h3>Ci1 Classic Tee</h3><p>Black Bella + Canvas tee. The white Ci1 badge big on the chest, “SEE I WON” underneath — the one that started the line, said louder.</p>
           <div class="row"><span class="price">$29.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
 </article>
       <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-ci1-hoodie.jpg" alt="Ci1 Hoodie — black heavy blend hoodie with the white Ci1 badge" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+        <div class="merch-stage"><div class="merch-view"><img src="assets/merch-ci1-hoodie.jpg" alt="Ci1 Hoodie — black heavy blend hoodie with the white Ci1 badge" draggable="false" loading="lazy" decoding="async"></div></div>
         <div class="body"><h3>Ci1 Hoodie</h3><p>Black Gildan heavy blend hoodie, white Ci1 badge front and center. Studio-night weight.</p>
           <div class="row"><span class="price">$49.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
       </article>
       <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-ci1-hat.jpg" alt="Ci1 Dad Hat — black dad hat with embroidered Ci1 mark" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+        <div class="merch-stage"><div class="merch-view"><img src="assets/merch-ci1-hat.jpg" alt="Ci1 Dad Hat — black dad hat with embroidered Ci1 mark" draggable="false" loading="lazy" decoding="async"></div></div>
         <div class="body"><h3>Ci1 Dad Hat</h3><p>Black dad hat with the bold Ci1 mark embroidered in white thread — built thick so the stitching reads clean.</p>
           <div class="row"><span class="price">$27.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
       </article>
       <article class="merch">
-        <div class="merch-stage ph-light"><div class="merch-spin pad"><img src="assets/ci1-badge-black.png" alt="Black circular Ci1 badge artwork used on the See I Won tee" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+        <div class="merch-stage ph-light"><div class="merch-view pad"><img src="assets/ci1-badge-black.png" alt="Black circular Ci1 badge artwork used on the See I Won tee" draggable="false" loading="lazy" decoding="async"></div></div>
         <div class="body"><h3>“See I Won” Tee</h3><p>White tee, black Ci1 badge. Ci1 — I won. The statement piece of the line.</p>
           <div class="row"><span class="price">$29.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
       </article>
       <article class="merch">
-        <div class="merch-stage ph-dark"><div class="merch-spin pad"><img src="assets/ci1-badge-white.png" alt="White Ci1 badge artwork used on the die-cut sticker pack" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
+        <div class="merch-stage ph-dark"><div class="merch-view pad"><img src="assets/ci1-badge-white.png" alt="White Ci1 badge artwork used on the die-cut sticker pack" draggable="false" loading="lazy" decoding="async"></div></div>
         <div class="body"><h3>Ci1 Sticker Pack</h3><p>Three die-cut Ci1 badge stickers — white badge for dark surfaces, black for light. Laptop, case, studio door.</p>
           <div class="row"><span class="price">$9.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
       </article>
-      <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-bethat-3dblock.jpg" alt="“Be That” 3D Block Tee — black tee, back view, with the saying “What ever you wanna be, just be that” in white 3D block letters with a green shadow" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
-        <div class="body"><h3>“Be That” 3D Block Tee</h3><p>Black Comfort Colors 1717 tee, back view shown. The full line — “Be whatever you wanna be, just be that!” — big across the back in chunky 3D block letters with a green shadow. “BE THAT!” rides up front.</p>
+      <article class="merch" data-flip>
+        <div class="merch-stage"><div class="merch-view"><img class="mv-front" src="assets/merch-bethat-3dblock-front.jpg" alt="“Be That” 3D Block Tee — black tee, front view, with “BE THAT!” in white 3D block letters with a green shadow" draggable="false" loading="lazy" decoding="async"><img class="mv-back" src="assets/merch-bethat-3dblock.jpg" alt="“Be That” 3D Block Tee — black tee, back view, with the saying “What ever you wanna be, just be that” in white bold block letters" draggable="false" loading="lazy" decoding="async" hidden></div><div class="merch-toggle" role="group" aria-label="View front or back"><button type="button" class="on" data-view="front">Front</button><button type="button" data-view="back">Back</button></div></div>
+        <div class="body"><h3>“Be That” 3D Block Tee</h3><p>Black Comfort Colors 1717 tee. “BE THAT!” up front in chunky 3D block letters with a green shadow; the full line — “Be whatever you wanna be, just be that!” — big across the back in bold block type.</p>
           <div class="row"><span class="price">$29.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
 </article>
-      <article class="merch">
-        <div class="merch-stage"><div class="merch-spin"><img src="assets/merch-bethat-bubble.jpg" alt="“Be That” Bubble Tee — white tee, back view, with the saying “What ever you wanna be, just be that” in black graffiti bubble outlines" draggable="false" loading="lazy" decoding="async"></div><span class="spin-hint">Drag to spin</span></div>
-        <div class="body"><h3>“Be That” Bubble Tee</h3><p>White Comfort Colors 1717 tee, back view shown. The full line — “Be whatever you wanna be, just be that!” — across the back in fat graffiti bubble outlines. “BE THAT!” rides up front.</p>
+      <article class="merch" data-flip>
+        <div class="merch-stage"><div class="merch-view"><img class="mv-front" src="assets/merch-bethat-bubble-front.jpg" alt="“Be That” Bubble Tee — black tee, front view, with “BE THAT!” in white graffiti bubble outlines" draggable="false" loading="lazy" decoding="async"><img class="mv-back" src="assets/merch-bethat-bubble.jpg" alt="“Be That” Bubble Tee — black tee, back view, with the saying “What ever you wanna be, just be that” in white bold block letters" draggable="false" loading="lazy" decoding="async" hidden></div><div class="merch-toggle" role="group" aria-label="View front or back"><button type="button" class="on" data-view="front">Front</button><button type="button" data-view="back">Back</button></div></div>
+        <div class="body"><h3>“Be That” Bubble Tee</h3><p>Black Comfort Colors 1717 tee. “BE THAT!” up front in fat graffiti bubble outlines; the full line — “Be whatever you wanna be, just be that!” — big across the back in bold block type.</p>
           <div class="row"><span class="price">$29.99</span><a class="btn btn-green" href="https://www.tiktok.com/@lumarbeats" target="_blank" rel="noopener">TikTok Shop</a></div></div>
 </article>
     </div>
@@ -2176,25 +2178,24 @@ selectBeat(0, false);
    player configuration error" (Error 153) and swallowed taps, so
    channel / video / playlist links now go straight to YouTube. */
 
-/* ================= 07 · merch: drag to orbit ================= */
-document.querySelectorAll('.merch-stage').forEach(function(stage){
-  var spin = stage.querySelector('.merch-spin');
-  var rotY = 0, rotX = 0, dragging = false, lastX = 0, lastY = 0;
-  stage.addEventListener('pointerdown', function(e){
-    dragging = true; lastX = e.clientX; lastY = e.clientY;
-    stage.setPointerCapture(e.pointerId);
+/* ================= 07 · merch: front / back view ================= */
+/* Flat product photos — no drag, no warp. Cards with a real back design
+   (Logo Tee, both Be That tees) get a Front / Back toggle; front-only
+   pieces show the front and no toggle. */
+document.querySelectorAll('.merch[data-flip]').forEach(function(card){
+  var view = card.querySelector('.merch-view');
+  var front = view.querySelector('.mv-front');
+  var back = view.querySelector('.mv-back');
+  var btns = card.querySelectorAll('.merch-toggle button');
+  function set(v){
+    var isBack = (v === 'back');
+    front.hidden = isBack;
+    back.hidden = !isBack;
+    btns.forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === v); });
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){ set(b.getAttribute('data-view')); });
   });
-  stage.addEventListener('pointermove', function(e){
-    if(!dragging) return;
-    rotY += (e.clientX - lastX) * 0.7;
-    rotX -= (e.clientY - lastY) * 0.35;
-    rotX = Math.max(-22, Math.min(22, rotX));
-    lastX = e.clientX; lastY = e.clientY;
-    spin.style.transform = 'rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg)';
-  });
-  function end(){ dragging = false; }
-  stage.addEventListener('pointerup', end);
-  stage.addEventListener('pointercancel', end);
 });
 </script>
 
