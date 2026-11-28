@@ -171,22 +171,30 @@
 
   /* ---------- 01 · the drop ---------- */
   .drop{background:radial-gradient(90% 70% at 50% 28%, #071528 0%, #04060c 62%);color:#eef5ee;border-bottom:1px solid var(--line);overflow:hidden;padding:0}
-  .drop-stage{position:relative;min-height:min(max(500px,calc(100vh - 192px)),860px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 18px 30px;text-align:center;overflow:hidden}
+  .drop-stage{position:relative;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:26px 18px 30px;text-align:center;overflow:hidden}
+  #studio3d{position:absolute;inset:0;width:100%;height:100%;z-index:0;cursor:grab;touch-action:pan-y}
+  #studio3d:active{cursor:grabbing}
+  .drop-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg, rgba(4,6,12,.68) 0%, rgba(4,6,12,0) 26%, rgba(4,6,12,0) 50%, rgba(4,6,12,.88) 88%, var(--bg) 100%)}
+  .drop-fallback{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;filter:brightness(.55) saturate(1.06)}
+  body.still-mode .cue-drag{display:none}
   .drop-marker{position:absolute;top:16px;left:18px;left:max(18px,calc(50% - 572px));display:flex;align-items:center;gap:12px;z-index:4;pointer-events:none}
   .drop-marker .dm-num{font-family:"Archivo Black",sans-serif;font-size:2rem;line-height:.85;color:transparent;-webkit-text-stroke:1.6px var(--green)}
   .drop-marker .dm-name{font-family:"Archivo Black",sans-serif;font-size:1rem;letter-spacing:.18em;color:#eaffef;text-transform:uppercase}
   .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   
-  .drop-copy{position:relative;z-index:3;pointer-events:none;width:min(560px,100%)}
+  .drop-copy{position:relative;z-index:3;margin-top:auto;pointer-events:none;width:min(560px,100%)}
   .drop-copy .btn{pointer-events:auto}
   .drop-copy p{margin:0 auto 16px;max-width:100%;color:#cfe6d2;font-size:1.05rem;line-height:1.55;text-shadow:0 1px 12px rgba(0,0,0,.8)}
-  .drop-logo{position:relative;z-index:2;width:min(420px,78vw);height:auto;margin:6px auto 24px;filter:drop-shadow(0 10px 34px rgba(0,0,0,.55))}
+  .drop-logo{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:4;width:min(220px,52vw);height:auto;pointer-events:none;filter:drop-shadow(0 10px 34px rgba(0,0,0,.55))}
   .build-stamp{font-family:"JetBrains Mono",monospace;font-size:.66rem;color:#5f7a63;letter-spacing:.06em}
   .drop-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
   .drop .btn-ghost{background:rgba(10,20,12,.6);color:#eaffef;border-color:rgba(140,255,170,.4)}
   .scroll-cue{margin-top:22px;color:#8fb896;font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase}
   @media (max-width:760px){
-    .drop-stage{min-height:88vh;padding-top:16px;padding-bottom:22px}
+    .drop-stage{min-height:88vh;padding-top:16px;padding-bottom:22px;justify-content:center}
+    #studio3d,.drop-shade,.drop-fallback{display:none!important}
+    .drop-logo{position:relative;top:auto;left:auto;transform:none;z-index:2;width:min(420px,78vw);margin:6px auto 24px;pointer-events:auto}
+    .drop-copy{margin-top:0}
     
     .drop-copy p{font-size:.92rem}
   }
@@ -504,14 +512,17 @@
   <div class="drop-stage">
     <div class="drop-marker" aria-hidden="true"><span class="dm-num">01</span><span class="dm-name">The Drop</span></div>
     <h1 class="sr-only">LuMar Beats</h1>
+    <canvas id="studio3d" aria-label="LuMar's studio in 3D — his Maschine MK3 and MIDI keyboard on the desk, three monitors, the big wooden LuMAR BEATS sign, his PS5, and little LuMar standing at the desk bobbing to the music. Drag to look around."></canvas>
+    <div class="drop-shade" aria-hidden="true"></div>
+    <img class="drop-fallback" id="dropFallback" src="assets/hero-still.jpg" alt="LuMar's studio — the big wooden LuMAR BEATS sign over three monitors, Maschine and keys under purple and blue light" />
     <img class="drop-logo" src="assets/lumar-logo-hero.png" alt="LuMar Beats — green graffiti logo" width="420" height="420" />
     <div class="drop-copy">
-      <p>Hip-hop &amp; R&amp;B instrumentals from Beaufort to the world — made on a Maschine MK3 and a MIDI keyboard. Nothing else. Scroll the journey — find your beat, license it direct, and hear every era of the sound.</p>
+      <p>Hip-hop &amp; R&amp;B instrumentals from Beaufort to the world — made right here in this room, on a Maschine MK3 and a MIDI keyboard. Nothing else. Scroll the journey — find your beat, license it direct, and hear every era of the sound.</p>
       <div class="drop-cta">
         <a class="btn btn-green" href="#find">Find your beat</a>
         <a class="btn btn-ghost" href="#store">Shop beats — from $10</a>
       </div>
-      <div class="scroll-cue">scroll — the journey starts</div>
+      <div class="scroll-cue"><span class="cue-drag">Drag to look around the studio &middot; </span>scroll — the journey starts</div>
     </div>
   </div>
 </section>
@@ -2197,6 +2208,1052 @@ document.querySelectorAll('.merch[data-flip]').forEach(function(card){
     b.addEventListener('click', function(){ set(b.getAttribute('data-view')); });
   });
 });
+</script>
+
+<script>
+/* ================= 3D: the studio — the real Blender model =================
+   The hero is Luther's actual studio, modeled in Blender 4.2 from
+   his studio photos and loaded here as a real model
+   (assets/studio14.glb — 258 meshes, PBR materials, textures packed
+   in). It replaces the old procedural three.js rebuild of the room.
+   In the model: the BIG green LuMAR BEATS logo on the 6-plank
+   wooden sign, three flat monitors (left white LuMAR logo, center
+   DAW timeline, right "LUMAR BEATS • LIVE FROM THE STUDIO"),
+   studio speakers, a Maschine MK3 with a glowing 4x4 pad grid
+   front-left, the MIDI keyboard front and center, desk mat with a
+   green LED edge, the normal gaming desk (no drawers), a real PS5 (tall
+   white curved plates, black core, blue glow strip) standing
+   vertical on the subwoofer at the right, graffiti tapestry,
+   framed art, purple/blue LED wash. NO ring light anywhere —
+   Luther had it removed, it was in the way. At the desk stands
+   little Luther (green cap, green hoodie — the chair is gone,
+   he stands at the keys): ONLY his head bobs to the music —
+   the head node is reparented onto a dedicated pivot at the
+   neck and only that pivot rotates (a forward dip on the
+   track's beat, driven by the same analyser level as the EQ),
+   while his body node's rest transform is re-asserted every
+   frame so the body cannot move. The room runs darker now,
+   and the dark wall panels glow with the EQ's color. The
+   speaker woofers pump with the bass too. The site supplies its own lighting and
+   camera: PBR environment, soft PCF shadows, the purple/blue
+   wash, and the same drag-to-look-around rig the procedural
+   studio used. The Maschine pads (Pad_0_0 … Pad_3_3 in the
+   model) chase and flare while a beat plays, driven by the
+   same signal as before. */
+window.initStudio = function(){
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canvas = document.getElementById('studio3d');
+  var drop = document.getElementById('drop');
+  function showFallback(){
+    canvas.style.display = 'none';
+    document.body.classList.add('still-mode');
+    var f = document.getElementById('dropFallback');
+    if(f){ if(!f.getAttribute('src')) f.src = 'assets/hero-still.jpg'; f.style.display = 'block'; }
+  }
+  function showLive(){
+    var f = document.getElementById('dropFallback');
+    if(f) f.style.display = 'none';
+    canvas.style.display = 'block';
+    document.body.classList.remove('still-mode');
+  }
+  if(!window.THREE || !THREE.GLTFLoader){ showFallback(); return; }
+  var renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  }catch(e){ showFallback(); return; }
+  /* a software WebGL renderer (SwiftShader, llvmpipe — headless
+     browsers, VMs, very old laptops) cannot hold this scene at
+     desktop size: frames take seconds and the page stops
+     answering input. Drop those clients onto the lite path
+     (pixel ratio 1, no shadow maps, no PMREM bake) so the
+     studio stays live and the page stays responsive. */
+  try{
+    var glCtx = renderer.getContext();
+    var dbgExt = glCtx.getExtension('WEBGL_debug_renderer_info');
+    var glName = dbgExt ? String(glCtx.getParameter(dbgExt.UNMASKED_RENDERER_WEBGL) || '') : '';
+    if(/swiftshader|llvmpipe|softpipe|software|basic render/i.test(glName)){
+      window.__studioLite = true;
+      window.__studioSoftGL = true;
+    }
+  }catch(e){}
+  /* ---------- never a black viewport: context-loss cover ----------
+     If the GPU drops the WebGL context (GPU switch, driver
+     reset, the browser reclaiming contexts), the canvas would
+     sit black forever — there was no handler at all. Now a lost
+     context is covered by the studio still (the hero is never a
+     black box), and a restored context re-sizes, flags the
+     materials for re-upload and returns to the live scene; the
+     blank-frame watchdog in the render loop then verifies the
+     recovery actually produced a picture. snapHome / size /
+     showLive are hoisted function declarations in this scope,
+     and scene / modelReady are settled before any event can
+     fire, so wiring the listeners here is safe. */
+  var glLost = false;
+  canvas.addEventListener('webglcontextlost', function(e){
+    e.preventDefault();
+    glLost = true;
+    snapHome();
+    showFallback();
+  });
+  canvas.addEventListener('webglcontextrestored', function(){
+    glLost = false;
+    size();
+    scene.traverse(function(o){
+      if(!o.material) return;
+      var ms = Array.isArray(o.material) ? o.material : [o.material];
+      for(var mi = 0; mi < ms.length; mi++) ms[mi].needsUpdate = true;
+    });
+    if(modelReady) showLive();
+  });
+  /* every screen runs the live studio at a capped pixel ratio —
+     Nov 22: 1.5x down to 1.25x. A Retina Mac at dpr 2 x 1.5x was a
+     2160x1062 backing store + MSAA on a 2014 GPU, on top of the
+     shadow cost that was already making frames take seconds.
+     1.25x stays crisp while keeping weak GPUs (and software
+     renderers) comfortable */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__studioSoftGL ? 1 : 1.25));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.76;
+  renderer.setClearColor(0x04060c, 1);
+  /* lite mode (phones) skips shadow maps and the PMREM environment
+     bake below — both are heavy scene-setup costs on a phone GPU,
+     and the room's own lights carry the look without them */
+  renderer.shadowMap.enabled = !window.__studioLite;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  var scene = new THREE.Scene();
+  /* image-based light: metals, glossy keys and screen glass pick up
+     real reflections instead of rendering flat gray */
+  if(!window.__studioLite && THREE.PMREMGenerator && THREE.RoomEnvironment){
+    try{
+      var pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+      if('environmentIntensity' in scene) scene.environmentIntensity = 0.09;
+      pmrem.dispose();
+    }catch(e){}
+  }
+  var camera = new THREE.PerspectiveCamera(46, 1.6, 0.05, 40);
+
+  /* ---------- lights: the purple/blue wash (the GLB ships none) ----------
+     Luther asked for the room darker still — every source is
+     pulled down again (dimmer ambient and key, a moodier wash,
+     lower exposure above), so the purple/blue sits deep and
+     the things that DO light up — the Maschine pads, the
+     screens and the wall panels' colored EQ glow — pop
+     against the dark. */
+  scene.add(new THREE.AmbientLight(0x232c44, 0.27));
+  var key = new THREE.DirectionalLight(0xcfd8ff, 0.65);  /* reads-3d: 0.44 -> 0.65 — stronger key so the figure has a lit side and a shadow side */
+  key.position.set(1.2, 3.4, 3.6); scene.add(key);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.radius = 7;  /* realism: softer shadows */
+  key.shadow.camera.left = -3.2; key.shadow.camera.right = 3.2;
+  key.shadow.camera.top = 3.2; key.shadow.camera.bottom = -1;
+  key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; key.shadow.bias = -0.0004;
+  key.target.position.set(0, 0.9, 0.5); scene.add(key.target);
+  /* Nov 22, render fix: the five point lights used to cast shadows —
+     a point light renders the scene SIX times per frame (one per cube
+     face), so five of them + the key light = 31 shadow passes, each
+     re-drawing all 258 meshes (~8,000 draw calls/frame). On a 2014
+     MacBook GPU that made every frame take ~3s: the readout (DOM)
+     moved in real time while the canvas presented frames seconds
+     late, so the camera looked stuck left after it had already
+     returned home in memory. Point-light shadows are OFF now — the
+     washes are uniform, which is what a wash should be — and the
+     key light alone carries the shadows (figure, desk, gear onto
+     the contact catchers). */
+  var pPurple = new THREE.PointLight(0x8b3dff, 5.6, 9, 1.9); pPurple.position.set(-2.7, 2.2, 2.1); scene.add(pPurple); pPurple.castShadow = false; pPurple.shadow.mapSize.set(512, 512); pPurple.shadow.radius = 4; pPurple.shadow.bias = -0.002;
+  var pBlue = new THREE.PointLight(0x2a5cff, 4.4, 9, 1.9); pBlue.position.set(2.7, 2.0, 2.0); scene.add(pBlue); pBlue.castShadow = false; pBlue.shadow.mapSize.set(512, 512); pBlue.shadow.radius = 4; pBlue.shadow.bias = -0.002;
+  var pCyan = new THREE.PointLight(0x37c8ff, 2.1, 7, 1.9); pCyan.position.set(0, 2.45, 0.3); scene.add(pCyan); pCyan.castShadow = false; pCyan.shadow.mapSize.set(512, 512); pCyan.shadow.radius = 4; pCyan.shadow.bias = -0.002;
+  var pGreen = new THREE.PointLight(0x14e65e, 0.8, 4.5, 1.9);  /* reads-3d: 1.4 -> 0.8 — the wash made the figure one green block */ pGreen.position.set(0, 0.3, 1.7); scene.add(pGreen); pGreen.castShadow = false; pGreen.shadow.mapSize.set(512, 512); pGreen.shadow.radius = 4; pGreen.shadow.bias = -0.002;
+  /* soft ceiling fill — light only, no fixture: the ring light
+     that used to hang here is gone for good */
+  var pCeil = new THREE.PointLight(0xafc4ff, 1.5, 6, 1.9); pCeil.position.set(0, 2.4, 1.6); scene.add(pCeil); pCeil.castShadow = false; pCeil.shadow.mapSize.set(512, 512); pCeil.shadow.radius = 4; pCeil.shadow.bias = -0.002;
+  /* the EQ's own light: dark while the room is silent, it takes
+     the visualizer's color and throws it back into the room in
+     proportion to the level while a track plays, so the wall
+     panels below feel like they are lighting the studio */
+  var eqGlow = new THREE.PointLight(0x2bff6e, 0, 9, 1.9); eqGlow.position.set(0, 1.7, 1.2); scene.add(eqGlow);
+  /* contact shadows: two invisible catchers (floor + desk top) so
+     the desk, the gear and little Luther sit ON their surfaces
+     instead of floating — the key + point shadows land on them.
+     ShadowMaterial shows only the shadow, nothing else; in lite
+     mode (phones) shadow maps are off, so these are invisible. */
+  (function(){
+    function contactShadow(w, d, x, y, z){
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d),
+        new THREE.ShadowMaterial({ opacity: 0.35, color: 0x000000 }));
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, y, z);
+      m.receiveShadow = true;
+      scene.add(m);
+    }
+    contactShadow(4.4, 3.2, 0, 0.001, 0);    /* floor (Blender z 0.001) */
+    contactShadow(2.2, 1.0, 0, 0.795, 0.55); /* desk top (Blender z 0.795, y -0.55) */
+  })();
+
+  /* ---------- EQ panels on the side walls ----------
+     Two columns of five light panels mounted on the walls
+     flanking the desk — dark frame, DARK face. The faces used
+     to be near-white (0xeef1ea) under a hard emissive, and
+     between the room lights and the EQ drive they blew out
+     into stark solid-white rectangles — the slabs in Luther's
+     screenshots. Now the face material is a deep slate: idle
+     the panels sit dark against the dark walls, and while
+     music plays each one GLOWS with its slice of the EQ
+     (bottom panel rides the bass, top panel the highs) in the
+     visualizer's own colors — color on dark, never a white
+     slab. Built here, not in the GLB, so every face carries
+     its own emissive material the render loop can drive band
+     by band. */
+  var eqPanels = [];
+  (function(){
+    var frameMat = new THREE.MeshStandardMaterial({ color: 0x0a0d14, roughness: 0.55, metalness: 0.25 });
+    for(var side = -1; side <= 1; side += 2){
+      for(var qi2 = 0; qi2 < 5; qi2++){
+        /* each panel rides in its own group, sunk INTO the side wall
+           so its glowing face sits flush with the wall surface —
+           Luther: the old tilt + standoff read as pale 3D boxes
+           jutting out of the walls. Flat now (no tilt): the face is
+           a dark inlaid panel whose colour comes from its emissive
+           glow, which reads from any angle, so no tilt is needed. */
+        var grp = new THREE.Group();
+        grp.position.set(side * 2.315, 0.98 + qi2 * 0.3, 1.05);
+        grp.rotation.y = 0;
+        scene.add(grp);
+        var frame = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.6), frameMat);
+        grp.add(frame);
+        /* Nov 18: the faces were near-white, so at rest they read as
+           big stark white rectangles — Luther's complaint. Dark slate base:
+           at rest they read as dark panels; the EQ glow supplies the colour. */
+        var faceMat = new THREE.MeshStandardMaterial({ color: 0x10151d, roughness: 0.5, metalness: 0 });
+        faceMat.emissive = new THREE.Color(0x1a5c34);
+        faceMat.emissiveIntensity = 0.03;
+        var face = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.21, 0.54), faceMat);
+        face.position.x = -side * 0.012;
+        grp.add(face);
+        eqPanels.push({ mat: faceMat, f: qi2 / 4, base: faceMat.color.clone() });
+      }
+    }
+  })();
+
+  /* ---------- the Blender model ---------- */
+  var padMats = [];
+  var tintTargets = []; /* {mat, base, band, gain} — the model's white surfaces (wall sheets, sign, PS5 plates, white keys) that LIGHT UP with their band of the EQ */
+  var lilHead = null, lilBody = null, lilBase = null; /* little Luther, wired to bob below */
+  var shirtBack = null; /* the 'GET YOU ONE' back-print mesh (v10 model), refitted onto the warped shirt below */
+  var headPivot = null, lilBodyRest = null; /* the neck pivot the head is reparented onto, and the body's locked rest transform */
+  var bobLvl = 0, bobPhase = 0;
+  var woofers = []; /* speaker cones that pump with the bass */
+  var modelReady = false;
+  new THREE.GLTFLoader().load('assets/studio14.glb', function(gltf){
+    var model = gltf.scene;
+    var seenTint = {};
+    var seenSpk = {};
+    var seenArt = {};
+    model.traverse(function(o){
+      var nm = o.name || '';
+      /* little Luther: capture the head and body nodes by name
+         — first match only. Below, the head node is reparented
+         onto a fresh pivot at the neck and ONLY that pivot is
+         ever rotated, so the bob is head-only by construction:
+         the body is a sibling node the bob cannot reach, and
+         its rest transform is re-asserted every frame. */
+      if(nm === 'LittleLumar_Head' && !lilHead) lilHead = o;
+      if(nm === 'LittleLumar_Body' && !lilBody) lilBody = o;
+      if(nm === 'LL_ShirtBack' && !shirtBack) shirtBack = o;
+      if(!o.isMesh) return;
+      o.castShadow = true; o.receiveShadow = true;
+      /* ---- the walls stay DARK, playing or not ----
+         Luther's standing rule: studio walls black / dark, no
+         white — the model's Plaster texture is a pale blue-grey
+         panel sheet, and under the EQ glow light it washed out
+         to a white wall (worst on the right). Multiply the wall
+         material right down to a deep slate so the texture reads
+         as dark paneling in every light the room throws at it;
+         the white EQ panels then read against dark, as asked. */
+      if((nm === 'BackWall' || nm === 'LeftWall' || nm === 'RightWall') && o.material){
+        var wMat = o.material.clone();
+        if(wMat.color) wMat.color.setRGB(0.14, 0.17, 0.25);
+        wMat.roughness = 0.96;
+        o.material = wMat;
+      }
+      /* ---- speakers must READ as speakers ----
+         In the raw model the baffle, cone, surround and dome are
+         all within a shade of black, so the cabinets rendered as
+         plain black boxes. Separate the parts the way a real
+         monitor is built: matte charcoal baffle, a lighter
+         graphite cone, a soft rubber surround ring, and bright
+         metal domes for the dust cap and tweeter — the eye finds
+         the two drivers instantly. The woofer parts are also
+         collected so the render loop can pump them with the bass. */
+      var sm = o.material;
+      if(sm && sm.name && !seenSpk[sm.name]){
+        if(sm.name === 'SpeakerBaffle'){ seenSpk[sm.name] = true; sm.color.setRGB(0.055, 0.06, 0.078); sm.roughness = 0.5; }
+        if(sm.name === 'SpeakerCone'){ seenSpk[sm.name] = true; sm.color.setRGB(0.36, 0.38, 0.43); sm.metalness = 0.5; sm.roughness = 0.38; }
+        if(sm.name === 'SpeakerSurround'){ seenSpk[sm.name] = true; sm.color.setRGB(0.015, 0.015, 0.02); sm.roughness = 0.95; }
+        if(sm.name === 'SpeakerDome'){ seenSpk[sm.name] = true; sm.color.setRGB(0.82, 0.86, 0.92); sm.metalness = 0.9; sm.roughness = 0.24; }
+        if(sm.name === 'GreyMetal'){ seenSpk[sm.name] = true; sm.color.setRGB(0.5, 0.54, 0.6); sm.metalness = 0.85; sm.roughness = 0.3; }
+        if(sm.name === 'BlackPlastic'){ seenSpk[sm.name] = true; sm.color.setRGB(0.035, 0.035, 0.046); sm.roughness = 0.45; }
+        if(sm.name === 'HoodieGreen'){ seenSpk[sm.name] = true; sm.color.setRGB(0.03, 0.20, 0.07); sm.roughness = 0.95; }
+      }
+      /* each monitor's power LED actually glows — the little
+         green dot every powered studio speaker has */
+      if(/Speaker[LR]_led$/.test(nm) && o.material){
+        var ledMat = o.material.clone();
+        ledMat.color.setRGB(0.02, 0.25, 0.07);
+        if(ledMat.emissive){ ledMat.emissive.setRGB(0.15, 1, 0.35); ledMat.emissiveIntensity = 2.4; }
+        o.material = ledMat;
+      }
+      if(/Speaker[LR]_(woofer|surround|dustcap)$/.test(nm)){
+        woofers.push({ o: o, z: o.position.z });
+      }
+      /* Maschine pads: each pad mesh gets its own copy of its
+         material so the 16 pads can flare one by one */
+      if(/^Pad_\d+_\d+$/.test(nm) && o.material && o.material.emissive){
+        var cloned = o.material.clone();
+        o.material = cloned;
+        padMats.push({ m: cloned, phase: padMats.length * 0.55, base: cloned.emissiveIntensity || 1 });
+      }
+      /* the model's white panels LIGHT UP with the EQ — the
+         white sheet panels on the side walls (the curtains:
+         left wall rides the bass, right wall the highs), the
+         Speed Limit sign on the left wall (mids), the PS5's
+         white plates and white plastic (bass), the MIDI white
+         keys (overall level). Each gets a band + gain here;
+         the render loop drives its emissive from the same
+         analyser bands as the EQ canvas (window.__eqBass /
+         __eqMid / __eqHigh, written by the player). The two
+         curtains share one Cotton material in the model, so
+         each wall gets its own clone to glow on its own band. */
+      var mat = o.material;
+      if((nm === 'CurtainLeft' || nm === 'CurtainRight') && mat){
+        var cMat = mat.clone();
+        /* the sheet curtains go dark too — pale cotton at a huge
+           EQ gain was the other half of the white-wall blowout.
+           Dark slate base + a gentle gain: they take a colored
+           glow from the music, they never go white. */
+        if(cMat.color) cMat.color.setRGB(0.15, 0.18, 0.25);
+        o.material = cMat;
+        tintTargets.push({ mat: cMat, base: cMat.color ? cMat.color.clone() : null,
+                           band: nm === 'CurtainLeft' ? 'bass' : 'high', gain: 1.0 });
+      } else if(mat && mat.name && !seenTint[mat.name] &&
+         (mat.name === 'KeyWhite' || mat.name === 'SpeedLimitMat' ||
+          mat.name === 'WhitePlastic' || mat.name === 'PS5White')){
+        seenTint[mat.name] = true;
+        tintTargets.push({ mat: mat, base: mat.color ? mat.color.clone() : null,
+          band: mat.name === 'SpeedLimitMat' ? 'mid' : (mat.name === 'KeyWhite' ? 'level' : 'bass'),
+          gain: mat.name === 'KeyWhite' ? 1.15 : (mat.name === 'SpeedLimitMat' ? 2.7 : 2.1) });
+      }
+      /* ---- the front-of-room art + TV stop glowing white ----
+         The wall art and TV by the front of the room are emissive
+         in the model (their image textures glow: art 0.25, the TV
+         screen 1.20), so from the front view the near-camera
+         pieces read as blank pale rectangles — the other half of
+         Luther's "white things on the walls". They are his art,
+         so they stay, but the glow is cut right down: the TV keeps
+         a soft screen glow, the art keeps just enough to read in
+         the dark room. The paper/art itself is bright (white
+         certificates, light-blue painting) and the room lights
+         wash it to blank pale rectangles — a darker multiply
+         keeps it readable but muted, like the dark walls. */
+      if(mat && mat.name && !seenArt[mat.name] &&
+         (mat.name === 'TVScreenMat' || mat.name === 'ArtCamila_artmat' ||
+          mat.name === 'ArtTarget_artmat' || mat.name === 'Cert1_artmat2' ||
+          mat.name === 'Cert2_artmat' || mat.name === 'Cert3_artmat' ||
+          mat.name === 'Cert5_artmat' || mat.name === 'ShadowBox_artmat')){
+        seenArt[mat.name] = true;
+        if(mat.emissiveIntensity !== undefined){
+          mat.emissiveIntensity = mat.name === 'TVScreenMat' ? 0.25 : 0.08;
+        }
+        if(mat.color && mat.name !== 'TVScreenMat'){
+          var dim = /Cert|ShadowBox/.test(mat.name) ? 0.55 : 0.65;
+          mat.color.setRGB(dim, dim, dim);
+        }
+      }
+      /* ---- realism pass: PBR materials, no plastic look ----
+         The studio13 GLB already carries these values from the
+         Blender build; this pass re-asserts them at load (the same
+         table) so the live scene matches the renders even if a
+         future export resets a material. Roughness/metalness on
+         the gear — Maschine, MIDI keys, monitors, PS5, speakers,
+         desk. PS5 clearcoat: the GLB's Principled node has no coat
+         inputs and three.js MeshStandardMaterial cannot render a
+         coat, so the PS5 gets its gloss from roughness 0.20.
+         READS-3D: Jeans + ShoeWhite joined the table — they are
+         real faces now (studio12 shipped with the whole body as
+         HoodieGreen because the realism build's clear() reset
+         every polygon's material_index to 0; studio13 fixes it). */
+      var REALISM_MATS = {
+        BlackPlastic: { r: 0.45, m: 0 },
+        HoodieGreen: { r: 0.95, m: 0 },
+        Skin: { r: 0.55, m: 0 },
+        PS5White: { r: 0.20, m: 0 },
+        PS5Black: { r: 0.12, m: 0.15 },
+        KeyWhite: { r: 0.30, m: 0 },
+        DarkWood: { r: 0.60, m: 0 },
+        Carpet: { r: 1.0, m: 0 },
+        GreyMetal: { r: 0.30, m: 0.85 },
+        Jeans: { r: 0.90, m: 0 },
+        ShoeWhite: { r: 0.50, m: 0 }
+      };
+      if(mat && mat.name && REALISM_MATS[mat.name]){
+        var rm = REALISM_MATS[mat.name];
+        if(mat.roughness !== undefined) mat.roughness = rm.r;
+        if(mat.metalness !== undefined) mat.metalness = rm.m;
+      }
+    });
+    /* The hoodie warp is RETIRED (realism round, Nov 19): the new
+       body in studio12.glb is authored with its final shape — a
+       barrelled torso, rounded shoulders, arms and hands — so there
+       is nothing left to warp at load. The old warp (which grew the
+       HoodieGreen part past the slab body) would distort the new
+       body; it is gone, not just skipped. */
+    /* The 'GET YOU ONE' back print is RETIRED too: LL_ShirtBack in
+       studio12.glb was subdivided and seated onto the new torso's
+       back in Blender (printed side 0.005 proud, slab thickness
+       kept, hood verified 0.006 behind the print) — the old JS
+       refit assumed the warp's depth law and would misplace it. */
+    /* The cap sits ON his head, not IN it. In the raw model the
+       crown's radius clears the head sphere by only ~7mm at
+       scale, so the crown's base ring and the brim root sliced
+       straight through the skull — the clipped seam Luther
+       flagged. Every cap part (crown + brim, the OEF front
+       patch, the brim text — and on the v10 cap the seam
+       stitching and the grey eyelets too, which carry their
+       own materials) is scaled up ~9% around the head's
+       center and lifted a touch, all by the SAME transform, so
+       the patch and brim text stay registered on the crown
+       while the whole cap gains real clearance all the way
+       around and rests on top of the head like a worn hat. */
+    if(lilHead){
+      lilHead.traverse(function(part){
+        if(!part.isMesh || !part.geometry || !part.geometry.attributes.position) return;
+        var hm = part.material;
+        if(!hm || (hm.name !== 'HatBlack' && hm.name !== 'HatFrontMat' && hm.name !== 'HatBrimTextMat' &&
+                   hm.name !== 'HatSeam' && hm.name !== 'EyeletGrey')) return;
+        var hp = part.geometry.attributes.position;
+        for(var hi = 0; hi < hp.count; hi++){
+          var hx = hp.getX(hi), hy = hp.getY(hi), hz = hp.getZ(hi);
+          hp.setXYZ(hi, hx * 1.09, 0.105 + (hy - 0.105) * 1.05 + 0.02, hz * 1.09);
+        }
+        hp.needsUpdate = true;
+      });
+    }
+    /* Nov 18: Luther — "make the hat a little more big." Another ~6%
+       on top of the reseat, all five cap materials together, same
+       centre: x/z out from the head axis, y up from the cap base
+       (0.105) so the base ring stays put and the crown grows up and
+       out — the brim does not drop over the forehead and nothing
+       clips into the skull. */
+    if(lilHead){
+      lilHead.traverse(function(part){
+        if(!part.isMesh || !part.geometry || !part.geometry.attributes.position) return;
+        var hm = part.material;
+        if(!hm || (hm.name !== 'HatBlack' && hm.name !== 'HatFrontMat' && hm.name !== 'HatBrimTextMat' &&
+                   hm.name !== 'HatSeam' && hm.name !== 'EyeletGrey')) return;
+        var hp = part.geometry.attributes.position;
+        for(var hi = 0; hi < hp.count; hi++){
+          var hx = hp.getX(hi), hy = hp.getY(hi), hz = hp.getZ(hi);
+          hp.setXYZ(hi, hx * 1.06, 0.105 + (hy - 0.105) * 1.06, hz * 1.06);
+        }
+        hp.needsUpdate = true;
+      });
+    }
+    /* little Luther's head goes onto its own neck pivot: a
+       fresh group placed at the head node's world position
+       (the bottom of the head — its geometry rises from y≈0),
+       with the head attached under it. attach() preserves the
+       head's world transform, so nothing shifts on screen;
+       from here on the render loop rotates ONLY the pivot,
+       which can swing the head around the neck and nothing
+       else — the body node is a sibling, never a child, and
+       its rest transform is captured so the loop can hold it
+       perfectly still at the keys. */
+    if(lilHead){
+      model.updateMatrixWorld(true);
+      var hw = new THREE.Vector3();
+      lilHead.getWorldPosition(hw);
+      headPivot = new THREE.Group();
+      model.add(headPivot);
+      headPivot.position.copy(model.worldToLocal(hw.clone()));
+      headPivot.updateMatrixWorld(true);
+      headPivot.attach(lilHead);
+      lilBase = { hx: 0, hz: 0 };
+    }
+    if(lilBody){
+      lilBodyRest = { p: lilBody.position.clone(), r: lilBody.rotation.clone(), s: lilBody.scale.clone() };
+    }
+    /* verification handle: lets a live check confirm the head
+       pivot is what moves and the body stays locked */
+    window.__studioDbg = { pivot: headPivot, head: lilHead, body: lilBody, panels: eqPanels, tints: tintTargets };
+    scene.add(model);
+    modelReady = true;
+    /* first real frame replaces the still — unless the GL
+       context is lost at this moment, in which case the still
+       stays up and the context-restored handler brings the
+       live scene back when the context returns */
+    var f = document.getElementById('dropFallback');
+    if(f && !glLost) f.style.display = 'none';
+    if(!glLost) canvas.style.display = 'block';
+    var cue = document.querySelector('.cue-drag');
+    if(cue) cue.textContent = 'Drag to look around the studio \u00B7 let go and it eases back to center \u00B7 build 20261128-1 \u00B7 ';
+  }, undefined, function(){ showFallback(); });
+
+  /* ---------- camera rig: FIXED HERO + drag-only, rebuilt from scratch ----------
+     Luther, Nov 19, 4:11 PM — "Even when I move the studio myself
+     still stay on the left side. Delete all camera and camera
+     movements and start from scratch." The old rig failed him
+     four times: the tour parked left, the resume advanced to
+     the next view instead of home, and now the drag itself
+     left the camera stuck on the left side. So the whole
+     mechanism is GONE — no auto-tour, no cuts, no drift, no
+     breathe, no push-in, no resume, no sway, no scroll dolly.
+     The camera has ONE home and it never moves on its own:
+       HERO — az 0, pol 1.47, radiusBase 5.8, fov 58, target
+       (0, 1.78, 0.105): the big green LuMar Beats logo itself
+       (SignLogo node, planks y 1.36–2.20) dead center, and Lil
+       LuMar both in frame, wide, never past him. (Nov 21 —
+       Luther: "maybe its looking at that little logo on the
+       computer screen"; the old target (0, 1.20, 0.55) sat in
+       the monitors' plane, not on the sign — re-anchored onto
+       the big sign.)
+     Drag to look around, clamped TIGHT (az ±0.25, so the logo
+     stays in frame even at the extremes; pol 1.25–1.52). On
+     release the camera eases back to center in under a second. The
+     camera only moves when he drags it, and it always comes
+     home. The only clamps that stay are safety, not movement:
+     the dolly floor (r never below 97% of radiusBase — never
+     past Lil LuMar) and the position clamp (never leave the
+     room).
+     PHASE 2 (later, only after Luther confirms this phase is
+     right): the auto tour comes back. It is NOT in this build. */
+  var HERO_AZ = 0, HERO_POL = 1.47;
+  var DRAG_AZ = 0.35; /* drag clamp — wider look-around (Luther, Nov 20: "real tight to move"); headless sweeps show the logo stays in frame with margin and Lil LuMar stays visible at ±0.35 */
+  var target = new THREE.Vector3(0, 1.78, 0.105);
+  var az = HERO_AZ, pol = HERO_POL, radiusBase = 5.8;
+  var azT = az, polT = pol;
+  /* Frame-rate independent damping: 1 - exp(-lambda * dt) gives
+     the same ease-out at 30, 60 or 120Hz. */
+  function camDamp(cur, tgt, lambda, dt){
+    return cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
+  }
+  var dragging = false, returning = false, lastX = 0, lastY = 0, lastMove = 0;
+  function snapHome(){
+    az = azT = HERO_AZ; pol = polT = HERO_POL;
+    returning = false;
+  }
+  /* Place the camera from the current az/pol/target and look at
+     the sign. The loop calls this every frame after damping;
+     the independent return watchdog calls it directly when it
+     forces the camera home outside the loop. */
+  function placeCameraHome(){
+    var r = radiusBase;
+    /* HARD FLOOR — the camera NEVER goes past Lil LuMar (Luther,
+       Nov 19, 1:43 PM). No mechanism may bring the dolly closer
+       than 97% of radiusBase. With a fixed dolly this is a
+       safety net, kept so the rule survives any future edit. */
+    r = Math.max(r, radiusBase * 0.97);
+    var sp = Math.sin(pol);
+    camera.position.set(
+      target.x + r * sp * Math.sin(az),
+      target.y + r * Math.cos(pol),
+      target.z + r * sp * Math.cos(az)
+    );
+    /* v4: the camera can NEVER leave the room - clamp its position into
+       the safe box every frame (drag, desktop, mobile). Room
+       bounds in Three.js coords: side walls x +/-2.3, back wall z 0,
+       ceiling y 2.6, floor y 0; the front is open, so z may run out
+       to 8.0 (the front wide shot sits out there). */
+    camera.position.x = Math.max(-2.05, Math.min(2.05, camera.position.x));
+    camera.position.y = Math.max(0.35, Math.min(2.35, camera.position.y));
+    camera.position.z = Math.max(0.25, Math.min(8.0, camera.position.z));
+    camera.lookAt(target.x, target.y, target.z);
+  }
+  /* ---------- INDEPENDENT RETURN WATCHDOG (Nov 21 — return fix,
+     build 20261121-3. Luther, 5:10 PM: "no more tests, ship it
+     working." The hands-off test proved the return never runs on
+     his machine — the loop's own safety nets never fire, so the
+     failure is either the inView gate (the loop early-returns
+     every frame) or an exception before the camera update.
+     This watchdog depends on NEITHER: it runs on setTimeout /
+     setInterval, outside rAF and outside the loop entirely.
+     On every drag end it samples az/pol twice; if the camera is
+     genuinely stuck — off centre and not moving toward home —
+     it forces az/azT home, places the camera and renders the
+     frame itself, retrying until home. If the normal damped
+     return is already working, the samples show az/pol moving
+     home and the watchdog does nothing. It never fights a
+     healthy return. */
+  var wdT1 = 0, wdT2 = 0, wdIv = 0, wdAz1 = 0, wdPol1 = 0, wdFired = false;
+  function clearWatchdog(){
+    if(wdT1){ clearTimeout(wdT1); wdT1 = 0; }
+    if(wdT2){ clearTimeout(wdT2); wdT2 = 0; }
+    if(wdIv){ clearInterval(wdIv); wdIv = 0; }
+  }
+  function watchdogRender(){
+    /* Force home + place + render, guarded: if the render
+       itself throws (lost context, bad state), swallow it —
+       the interval retries, and the loop's own blank-frame
+       watchdog / still fallback still covers a truly dead GL. */
+    try{
+      snapHome();
+      placeCameraHome();
+      renderer.render(scene, camera);
+      return true;
+    }catch(e){ return false; }
+  }
+  function armReturnWatchdog(){
+    clearWatchdog();
+    wdFired = false;
+    /* Sample 1 at ~1s: the normal damp (lambda 8) brings az
+       home in ~0.5-1s, so a healthy return is nearly home
+       by now. */
+    wdT1 = setTimeout(function(){
+      wdT1 = 0;
+      if(dragging) return; /* grabbed it again — stand down */
+      wdAz1 = az; wdPol1 = pol;
+      /* Sample 2 at ~1.5s: the camera itself (az/pol) must be
+         gliding toward home for the return to count as working.
+         azT gliding home in memory alone does NOT count — if
+         the target homes while the camera never moves, the
+         frame is still stuck. And "home" means all four: the
+         camera AND its target, az AND pol — az can sit at 0
+         while azT is still off centre if the loop never ran
+         the camera math at all. */
+      wdT2 = setTimeout(function(){
+        wdT2 = 0;
+        if(dragging) return;
+        if(Math.abs(az) <= 0.02 && Math.abs(azT) <= 0.02
+          && Math.abs(pol - HERO_POL) <= 0.02 && Math.abs(polT - HERO_POL) <= 0.02) return; /* already home */
+        if(Math.abs(az) < Math.abs(wdAz1) - 0.005
+          || Math.abs(pol - HERO_POL) < Math.abs(wdPol1 - HERO_POL) - 0.005) return; /* camera gliding home — healthy */
+        /* STUCK: force home and render directly, retrying on
+           a short interval until home AND a render succeeds. */
+        wdFired = true;
+        var tries = 0;
+        wdIv = setInterval(function(){
+          tries++;
+          if(dragging){ clearWatchdog(); return; }
+          if(watchdogRender() && Math.abs(az) <= 0.001){ clearWatchdog(); return; }
+          if(tries >= 20){ clearWatchdog(); }
+        }, 150);
+        watchdogRender(); /* first force-render at once, don't wait 150ms */
+      }, 500);
+    }, 1000);
+  }
+  canvas.addEventListener('pointerdown', function(e){
+    dragging = true; returning = false; lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
+    clearWatchdog();
+    try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    /* MISSED-RELEASE CURE (Nov 20 — "cam still stuck on the left"):
+       the old code never checked whether a button was still down,
+       so if the release event was ever missed, `dragging` stayed
+       true forever and every later HOVER move over the canvas was
+       treated as a drag: the camera followed the mouse, parked
+       where the mouse stopped, and `lastMove` stayed fresh so the
+       2s/3s safety nets never fired. A move with no button down
+       is not a drag — end it here and let the camera come home.
+       During a real drag buttons is 1 (mouse / touch / pen); if a
+       browser ever reports undefined, `undefined === 0` is false
+       and behaviour is unchanged. */
+    if(e.buttons === 0){ endDrag(); return; }
+    azT += (e.clientX - lastX) * 0.005;
+    polT -= (e.clientY - lastY) * 0.003;
+    /* Drag clamp (Luther, Nov 19, 4:11 PM — rebuild; widened Nov 20):
+       the old ±0.40 clamp still let a drag swing far enough left
+       that the logo left the frame and the camera stuck there.
+       ±0.25 kept the logo in frame but felt "real tight to move"
+       (Luther, Nov 20, 3:29 PM). ±0.35 (±20 deg) is the widened stop:
+       headless sweeps show the logo stays in frame with margin and
+       Lil LuMar stays visible; at ±0.40 the x-clamp engages and the
+       view is nearly identical to 0.35. */
+    azT = Math.max(-DRAG_AZ, Math.min(DRAG_AZ, azT));
+    polT = Math.max(1.25, Math.min(1.52, polT));
+    lastX = e.clientX; lastY = e.clientY; lastMove = performance.now();
+  });
+  function endDrag(){
+    dragging = false;
+    /* let go and the camera comes home: if the drag left it off
+       centre, ease back over ~1s; if it is already home, this
+       is a no-op. */
+    if(azT !== HERO_AZ || polT !== HERO_POL) returning = true;
+    armReturnWatchdog();
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  /* BELT AND BRACES (Nov 19, 4:23 PM — the return never fired):
+     pointerup was the only event that used to end a drag, and if
+     it was missed the camera parked where the drag left it.
+     pointerleave covers a release outside the canvas when
+     capture failed, lostpointercapture covers capture being
+     taken away, and window blur covers the user switching away
+     (alt-tab, picking up the phone to record) mid-drag. Any of
+     them ends the drag and starts the return home. */
+  canvas.addEventListener('pointerleave', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+  window.addEventListener('blur', endDrag);
+  /* Nov 20: a release landing anywhere on the page ends the drag
+     too — covers capture failing and the release landing on
+     another element instead of the canvas. */
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  function size(){
+    var w = canvas.clientWidth || drop.clientWidth || 300;
+    var h = canvas.clientHeight || drop.clientHeight || 300;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    /* portrait screens get a wider lens and a longer dolly, so the
+       whole desk — Maschine left, keys right — stays in frame.
+       NEVER PAST LIL LUMAR (Luther, Nov 19, 1:43 PM): the dolly
+       is pulled back at every aspect and the lens widened a
+       touch, so the camera never reads as zoomed in. */
+    if(camera.aspect > 2){ camera.fov = 44; radiusBase = 5.8; } /* banner: wide strip, tighter lens so the room fills it */
+    else if(camera.aspect < 0.8){ camera.fov = 72; radiusBase = 7.0; }
+    else if(camera.aspect < 1.25){ camera.fov = 64; radiusBase = 6.6; }
+    else { camera.fov = 58; radiusBase = 5.8; }
+    camera.updateProjectionMatrix();
+  }
+  size();
+  window.addEventListener('resize', size);
+
+  var inView = true;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(en){ inView = en[0].isIntersecting; }, { threshold: 0.02 }).observe(drop);
+  }
+  var eqTint = new THREE.Color();
+  /* ---------- blank-frame watchdog state ----------
+     frameIsBlank samples five spread points of the frame just
+     rendered; the clear color is (4, 6, 12), so a frame whose
+     every sample sits at ~clear color is a frame that drew
+     nothing. Two blank checks in a row trigger recoverBlank:
+     clear any cut, snap back to the front-wide view, re-size,
+     force a context restore if the context is the problem —
+     and if the scene still will not draw, put the studio
+     still up so the hero is a picture of the room, never a
+     black box. Sampling keeps running under the still, so
+     the live scene returns on its own once it draws again. */
+  var blankChecks = 0, blankStrikes = 0, blankRecoveries = 0, blankFallback = false;
+  var blankProbe = new Uint8Array(4);
+  function frameIsBlank(){
+    var gl = renderer.getContext();
+    var w = canvas.width, h = canvas.height;
+    if(!w || !h || gl.isContextLost()) return true;
+    var pts = [[0.5, 0.5], [0.25, 0.35], [0.75, 0.35], [0.3, 0.7], [0.7, 0.7]];
+    for(var i = 0; i < pts.length; i++){
+      try{
+        gl.readPixels(Math.floor(w * pts[i][0]), Math.floor(h * pts[i][1]), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, blankProbe);
+      }catch(e){ return false; }
+      if(blankProbe[0] > 10 || blankProbe[1] > 12 || blankProbe[2] > 20) return false;
+    }
+    return true;
+  }
+  function recoverBlank(){
+    blankRecoveries++;
+    snapHome();
+    size();
+    var gl = renderer.getContext();
+    if(gl.isContextLost() && renderer.forceContextRestore) renderer.forceContextRestore();
+    if(blankRecoveries >= 2){
+      blankFallback = true;
+      showFallback();
+    }
+  }
+  var last = performance.now();
+  var slowFrames = 0, prSteps = 0;
+  /* ---------- CAM DEBUG READOUT (Nov 21 — hands-off test proved the
+     return never runs on Luther's machine: camera stays left 30s+
+     after a hands-off release, loop safety nets never fire).
+     A tiny live readout next to the cue, updated at the TOP of
+     every loop frame (before the inView early-return), so one
+     screenshot settles it:
+       t   = seconds since load (advances = the loop is scheduling)
+       drg = dragging?  ret = returning?  iv = inView?
+       az / azT = camera azimuth now / target (homing in memory?)
+       play = a beat is playing?  hue = analyser hue (null = no EQ data)
+       err = last loop exception (\u2014 = none)  gl = context lost?
+       mdl = model loaded?
+     If t freezes, the loop is dead. If t advances with iv=0, the
+     IntersectionObserver gate is the killer. If t advances, iv=1
+     and az/azT glide home while the SCREEN stays left, the camera
+     math runs but the frame never renders — an exception between
+     the camera math and renderer.render, or a lost GL context.
+     Nov 21, build 20261121-3: the loop body is now split into
+     per-section try/catches (camera / playing-path / render), so
+     an exception in one part can't kill the others — and the
+     independent return watchdog (setTimeout, outside the loop)
+     brings the camera home even if the loop never runs. The
+     readout stays as infrastructure. */
+  var camDbgEl = null; /* banner Nov 28: no debug readout on the live page */
+  var camDbgT0 = performance.now();
+  var loopErr = '';
+  (function loop(now){
+    requestAnimationFrame(loop);
+    if(camDbgEl){
+      try{
+        camDbgEl.textContent = 't=' + ((performance.now() - camDbgT0) / 1000).toFixed(1)
+          + ' drg=' + (dragging ? 1 : 0) + ' ret=' + (returning ? 1 : 0) + ' iv=' + (inView ? 1 : 0)
+          + ' az=' + az.toFixed(2) + ' azT=' + azT.toFixed(2)
+          + ' play=' + (document.body.classList.contains('beat-playing') ? 1 : 0)
+          + ' hue=' + (window.__eqHue == null ? 'null' : String(window.__eqHue).slice(0, 6))
+          + ' err=' + (loopErr || '\u2014') + ' gl=' + (glLost ? 1 : 0) + ' mdl=' + (modelReady ? 1 : 0);
+      }catch(e){}
+    }
+    try{
+    if(!inView){ last = now; return; }
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    /* adaptive resolution: if frames stay slow (a weak GPU, or a
+       software renderer the init check could not identify), step
+       the pixel ratio down so the room keeps moving instead of
+       the page seizing up — hardware that keeps up never steps.
+       Nov 22: 30 slow frames, not 90 — at multi-second frames,
+       90 was minutes before the first step-down. */
+    if(dt > 0.04){ slowFrames++; } else if(slowFrames > 0){ slowFrames--; }
+    if(slowFrames >= 30 && prSteps < 3){
+      slowFrames = 0; prSteps++;
+      renderer.setPixelRatio(Math.max(0.7, renderer.getPixelRatio() - 0.25));
+      size();
+    }
+    var t = now / 1000;
+    var playing = document.body.classList.contains('beat-playing');
+    /* FIXED HERO (Luther, Nov 19, 4:11 PM — rebuild from scratch):
+       the camera sits at home — az 0, pol 1.47, radiusBase —
+       and NEVER moves on its own. No tour, no cuts, no drift,
+       no breathe, no push-in, no sway, no scroll dolly. The
+       only motion is the user's own drag (azT/polT, clamped
+       ±0.25), and on release the camera eases back to center
+       over ~1s. While returning, azT/polT glide home on a
+       frame-rate independent damp; az/pol chase them directly,
+       so the hand still feels immediate and the return reads
+       as one smooth glide, not a snap. */
+    /* SAFETY NET (Nov 19, 4:23 PM — "Now it's really stuck"):
+       the return used to trigger ONLY on pointerup, so if that
+       one event was missed the camera parked at the dragged
+       spot forever. The loop now catches it two ways: whenever
+       the camera is off-centre and no drag is in progress, the
+       return is on; and if a drag is supposedly in progress
+       but the pointer has not moved for 2s, the drag is dead —
+       force it off and bring the camera home. Either way the
+       camera comes home, even if pointerup never landed. */
+    if(azT !== HERO_AZ || polT !== HERO_POL){
+      if(!dragging) returning = true;
+      else if(performance.now() - lastMove > 2000){ dragging = false; returning = true; }
+    }
+    /* HARD SNAP (Nov 19 — the ~1.5–3s damp return still reads as
+       "stuck" on a short video): if the camera is off-centre and
+       the pointer has been still for 3s, snap it home instantly
+       instead of gliding. The damp glide above normally brings it
+       home first, but the snap makes "still left after 3s"
+       impossible. */
+    if((azT !== HERO_AZ || polT !== HERO_POL) && !dragging && performance.now() - lastMove > 3000){
+      snapHome();
+    }
+    if(returning){
+      azT = camDamp(azT, HERO_AZ, 8.0, dt);
+      polT = camDamp(polT, HERO_POL, 8.0, dt);
+      if(Math.abs(azT - HERO_AZ) < 0.001 && Math.abs(polT - HERO_POL) < 0.001){
+        azT = HERO_AZ; polT = HERO_POL; returning = false;
+      }
+    }
+    /* CAMERA UPDATE — its own try/catch (Nov 21, return fix):
+       an exception in the playing-path below must never take
+       the camera update down with it, and vice versa. */
+    try{
+      az = camDamp(az, azT, 7.5, dt);
+      pol = camDamp(pol, polT, 7.5, dt);
+      placeCameraHome();
+    }catch(e){ loopErr = 'cam:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
+    if(modelReady){
+      try{
+      /* Maschine pads chase; they flare while a beat plays */
+      var speed = playing ? 7.5 : 2.1, amp = playing ? 1.15 : 0.5;
+      for(var pi = 0; pi < padMats.length; pi++){
+        var v = 0.5 + 0.5 * Math.sin(t * speed - padMats[pi].phase);
+        padMats[pi].m.emissiveIntensity = REDUCED ? padMats[pi].base : padMats[pi].base * (0.25 + v * amp);
+      }
+      /* Little Luther bobs to the music — HEAD ONLY, as Luther
+         asked, and now guaranteed by construction: the loop
+         rotates only the neck pivot the head was reparented
+         onto, and the body's captured rest transform is
+         re-asserted right here every frame, so his torso,
+         arms and legs cannot move a hair. The nod itself is a
+         true nod, not a rock: the head dips FORWARD toward
+         the keys (negative X — he faces the desk, away from
+         the camera) and comes back, never tipping backward
+         past rest, on the playing track's actual BPM
+         (window.__bpm from the player), with the analyser
+         level (window.__eqLevel) deciding how hard he goes
+         and a whisper of side tilt over the top. When the
+         music stops his head eases back to rest. (bobPhase
+         keeps running either way — the speaker woofers below
+         pump off the same phase.) */
+      if(lilBody && lilBodyRest){
+        lilBody.position.copy(lilBodyRest.p);
+        lilBody.rotation.copy(lilBodyRest.r);
+        lilBody.scale.copy(lilBodyRest.s);
+      }
+      if(headPivot && lilBase){
+        var bTarget = (playing && !REDUCED) ? Math.min(1.15, 0.55 + (window.__eqLevel || 0) * 1.4) : 0;
+        bobLvl += (bTarget - bobLvl) * Math.min(1, dt * 5);
+        var bps = (window.__bpm || 100) / 60;
+        bobPhase += dt * bps * Math.PI * (bobLvl > 0.004 || playing ? 1 : 0);
+        if(bobLvl > 0.004){
+          var dip = 0.5 - 0.5 * Math.cos(bobPhase);
+          headPivot.rotation.x = lilBase.hx - dip * 0.21 * bobLvl;
+          headPivot.rotation.z = lilBase.hz + Math.sin(bobPhase * 0.5) * 0.03 * bobLvl;
+        } else {
+          headPivot.rotation.x = lilBase.hx; headPivot.rotation.z = lilBase.hz;
+        }
+      }
+      /* the woofers pump with the bass — cones push out on the
+         beat, harder the louder the low end runs */
+      if(woofers.length){
+        var wPulse = (playing && !REDUCED)
+          ? (Math.max(0, Math.sin(bobPhase)) * 0.011 + (window.__eqLevel || 0) * 0.009) * Math.min(1.15, bobLvl + 0.35)
+          : 0;
+        for(var wi = 0; wi < woofers.length; wi++){
+          woofers[wi].o.position.z = woofers[wi].z + wPulse;
+        }
+      }
+      pCeil.intensity = playing && !REDUCED ? 1.5 + Math.sin(t * 7.5) * 0.3 : 1.5;
+      /* the panels GLOW with the EQ — colored light on dark
+         surfaces, never white slabs: each tinted surface's
+         emissive takes its own band of the same analyser that
+         drives the EQ canvas (left wall sheet = bass, Speed
+         Limit sign = mids, right wall sheet = highs, PS5
+         plates = bass, white keys = overall level), the
+         mounted panel columns run as a 5-step EQ per side
+         (bottom = bass, top = highs, colored like the
+         visualizer's gradient), and the eqGlow light throws
+         their color into the room. Silent, everything settles
+         back to dark panels on dark walls. */
+      var eqB = window.__eqBass || 0, eqM = window.__eqMid || 0, eqH = window.__eqHigh || 0;
+      if(playing && !REDUCED && window.__eqHue != null){
+        var hueN = (((window.__eqHue % 360) + 360) % 360) / 360;
+        eqTint.setHSL(hueN, 0.85, 0.52);  /* saturated color, mid lightness — a glow hue, not near-white */
+        /* every drive below is CAPPED HARD: the earlier caps
+           (tint lightness 0.75, emissive up to 1.25, panels at
+           0.12 + level × 2.3 with the base color lerped toward
+           that bright emissive) still summed into stark WHITE
+           rectangles the moment music played — Luther's
+           screenshots. Now the tint is a mid-lightness color,
+           the emissive caps sit at glow level, and the panel
+           faces start dark and barely lift: the panels read as
+           dark glass lit with the EQ's color, never white. */
+        for(var ti = 0; ti < tintTargets.length; ti++){
+          var tt = tintTargets[ti];
+          var bv = tt.band === 'bass' ? eqB : tt.band === 'mid' ? eqM : tt.band === 'high' ? eqH : (window.__eqLevel || 0);
+          if(tt.base) tt.mat.color.copy(tt.base).lerp(eqTint, 0.12 + bv * 0.35);
+          if(tt.mat.emissive){ tt.mat.emissive.copy(eqTint); tt.mat.emissiveIntensity = Math.min(0.8, bv * (tt.gain || 1) * 0.8); }
+        }
+        for(var qi = 0; qi < eqPanels.length; qi++){
+          var qp = eqPanels[qi];
+          var qv = qp.f < 0.5 ? eqB + (eqM - eqB) * (qp.f * 2) : eqM + (eqH - eqM) * ((qp.f - 0.5) * 2);
+          qp.mat.emissive.setHSL((hueN + qp.f * 0.19 + 1) % 1, 0.9, 0.42);
+          qp.mat.emissiveIntensity = Math.min(0.85, 0.12 + qv * 0.75);
+          if(qp.base) qp.mat.color.copy(qp.base).lerp(qp.mat.emissive, 0.06 + qv * 0.14);
+        }
+        eqGlow.color.setHSL(hueN, 0.8, 0.5);
+        eqGlow.intensity = (window.__eqLevel || 0) * 2.4;  /* reads-3d: 4.2 -> 2.4 — the glow blasting down on the figure was the biggest green source */
+      } else {
+        for(var tj = 0; tj < tintTargets.length; tj++){
+          var tb = tintTargets[tj];
+          if(tb.base) tb.mat.color.copy(tb.base);
+          if(tb.mat.emissive) tb.mat.emissiveIntensity = 0;
+        }
+        for(var qj = 0; qj < eqPanels.length; qj++){
+          eqPanels[qj].mat.emissiveIntensity = 0.03;
+          if(eqPanels[qj].base) eqPanels[qj].mat.color.copy(eqPanels[qj].base);
+        }
+        eqGlow.intensity = 0;
+      }
+      }catch(e){ loopErr = 'play:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
+    }
+    try{
+      renderer.render(scene, camera);
+    }catch(e){ loopErr = 'render:' + ((e && e.message) ? String(e.message).slice(0, 50) : String(e).slice(0, 50)); }
+    /* blank-frame watchdog: sample the frame just rendered
+       (same task, so readPixels sees it before compositing) */
+    if(modelReady && !glLost){
+      blankChecks++;
+      if(blankChecks % 90 === 0){
+        if(frameIsBlank()){
+          blankStrikes++;
+          if(blankStrikes >= 2){ blankStrikes = 0; recoverBlank(); }
+        } else {
+          blankStrikes = 0; blankRecoveries = 0;
+          if(blankFallback){ blankFallback = false; showLive(); }
+        }
+      }
+    }
+    }catch(e){ loopErr = (e && e.message) ? String(e.message).slice(0, 60) : String(e).slice(0, 60); }
+  })(performance.now());
+};
+</script>
+
+<script>
+/* ================= the studio banner: live 3D on desktop =================
+   The studio banner is desktop-only: phones keep the logo hero
+   and never load the 3D (see the mobile gate below). On desktop
+   the still (assets/hero-still.jpg, the hero render of the same
+   Blender model) only covers the banner while the model streams
+   in, or stays for good if WebGL fails outright. Loading starts
+   the moment this script runs — no waiting for window load or an
+   idle browser, the two delays that used to leave a dead,
+   un-draggable picture sitting there. */
+(function(){
+  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var smallScreen = Math.min(window.screen.width || 9999, window.screen.height || 9999) <= 860;
+  window.__studioLite = !!((coarse && smallScreen) || window.innerWidth <= 760);
+  var heroCanvas = document.getElementById('studio3d');
+  var heroStill = document.getElementById('dropFallback');
+  if(heroStill) heroStill.style.display = 'block';
+  var cue = document.querySelector('.cue-drag');
+  if(cue) cue.textContent = 'Loading the 3D studio\u2026 ';
+  /* BANNER (Nov 28): mobile gets NO 3D — the logo hero stays.
+     Never load three.min.js on a phone; the canvas and the
+     still stay hidden and the in-flow logo is the hero. */
+  if(window.__studioLite){
+    var cc0 = document.getElementById('studio3d'); if(cc0) cc0.style.display = 'none';
+    var ff0 = document.getElementById('dropFallback'); if(ff0) ff0.style.display = 'none';
+    document.body.classList.add('still-mode');
+    return;
+  }
+  var threeStarted = false;
+  function startThree(){
+    if(threeStarted) return;
+    threeStarted = true;
+    var s = document.createElement('script');
+    s.src = 'assets/three.min.js';
+    s.onload = function(){
+      /* the still stays up until the Blender model has actually
+         loaded inside initStudio — no dark gap while the GLB
+         streams in, and the still simply stays if it fails */
+      if(window.initStudio) window.initStudio();
+      else stillForever();
+    };
+    s.onerror = stillForever;
+    document.body.appendChild(s);
+  }
+  function stillForever(){
+    var cc = document.getElementById('studio3d');
+    if(cc) cc.style.display = 'none';
+    var ff = document.getElementById('dropFallback');
+    if(ff){ ff.src = 'assets/hero-still.jpg'; ff.style.display = 'block'; }
+    document.body.classList.add('still-mode');
+  }
+  if(heroCanvas) heroCanvas.addEventListener('pointerdown', startThree);
+  /* a grab ANYWHERE on the hero stage starts the 3D too — the
+     still picture covers the canvas until the model lands, and
+     it must never swallow the drag that asks for the studio */
+  var heroStage = document.querySelector('.drop-stage');
+  if(heroStage) heroStage.addEventListener('pointerdown', startThree);
+  startThree();
+})();
 </script>
 
 <script>
